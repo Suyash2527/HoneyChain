@@ -3,6 +3,7 @@
 //   env SLOW=4      page runs this many times slower while recording (more captured frames = smoother video)
 //   env FPS=60      output frame rate
 //   env THEME=dark  app theme (dark | light)
+//   env TEMPO=0.76  scales pauses/captions to hit the target length (receipt print/tear keep real timing)
 //
 // How it stays smooth: the page's clock (setTimeout/setInterval, requestAnimationFrame, performance.now, Date.now)
 // and every CSS/Web animation are slowed SLOW times. Chrome's screencast frames are then placed on a constant
@@ -19,6 +20,7 @@ const out = process.argv[3] || 'docs/demo/HoneyChain-demo-3min.mp4'
 const SLOW = Number(process.env.SLOW || 4)
 const FPS = Number(process.env.FPS || 60)
 const THEME = process.env.THEME || 'dark'
+const TEMPO = Number(process.env.TEMPO || 0.76)
 fs.mkdirSync(path.dirname(out), { recursive: true })
 
 const exe = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((p) => fs.existsSync(p))
@@ -45,8 +47,10 @@ await page.evaluateOnNewDocument((S) => {
   window.requestAnimationFrame = (cb) => rRAF((t) => cb(p0 + (t - p0) / S))
 }, SLOW)
 
-// Every wait below is written in *video* seconds; it is stretched by SLOW in real time.
-const wait = (ms) => new Promise((r) => setTimeout(r, ms * SLOW))
+// Every wait below is written in *video* ms and stretched by SLOW in real time.
+// wait() is also scaled by TEMPO; hold() is not (for the app's own fixed-length animations).
+const wait = (ms) => new Promise((r) => setTimeout(r, ms * SLOW * TEMPO))
+const hold = (ms) => new Promise((r) => setTimeout(r, ms * SLOW))
 
 // ---- overlays: caption bar, cursor, title/end cards ----
 const installOverlays = () => page.evaluate(() => {
@@ -55,6 +59,8 @@ const installOverlays = () => page.evaluate(() => {
   st.textContent = `
   #vo-cap{position:fixed;left:50%;bottom:44px;transform:translateX(-50%) translateY(18px);max-width:1480px;z-index:99999;background:rgba(8,7,5,.9);backdrop-filter:blur(8px);color:#f5eedf;border-left:4px solid #d6b15e;border-radius:12px;padding:16px 30px;font:600 30px/1.35 'Source Serif 4',Georgia,serif;opacity:0;transition:opacity .45s ease,transform .45s ease;pointer-events:none;box-shadow:0 18px 50px rgba(0,0,0,.45)}
   #vo-cap.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  #vo-cap.side{left:56px;bottom:auto;top:50%;max-width:560px;transform:translateY(-40%)}
+  #vo-cap.side.on{transform:translateY(-50%)}
   #vo-cur{position:fixed;z-index:100000;width:28px;height:28px;border-radius:50%;background:rgba(214,177,94,.55);border:3px solid #e2bd66;box-shadow:0 0 18px rgba(214,177,94,.6);pointer-events:none;transform:translate(-50%,-50%);transition:transform .12s ease;left:-60px;top:-60px}
   #vo-cur.down{transform:translate(-50%,-50%) scale(.68)}
   #vo-card{position:fixed;inset:0;z-index:100001;display:grid;place-content:center;text-align:center;gap:14px;background:radial-gradient(900px 520px at 70% 0%,rgba(214,177,94,.2),transparent 60%),#000;color:#f5eedf;opacity:0;pointer-events:none;transition:opacity .8s ease}
@@ -64,12 +70,13 @@ const installOverlays = () => page.evaluate(() => {
   #vo-card small{font:500 20px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#d6b15e;text-transform:uppercase}`
   document.head.appendChild(st)
   for (const id of ['vo-cap', 'vo-cur', 'vo-card']) { const d = document.createElement('div'); d.id = id; document.body.appendChild(d) }
-  const cur = document.getElementById('vo-cur')
+  const cur = document.getElementById('vo-cur'), capEl = document.getElementById('vo-cap')
+  setInterval(() => capEl.classList.toggle('side', !!document.querySelector('.rc-scrim')), 100) // keep captions off the receipt
   addEventListener('mousemove', (e) => { cur.style.left = e.clientX + 'px'; cur.style.top = e.clientY + 'px' }, true)
   addEventListener('mousedown', () => cur.classList.add('down'), true)
   addEventListener('mouseup', () => cur.classList.remove('down'), true)
 })
-const caption = async (text) => { await installOverlays(); await page.evaluate((t) => { const c = document.getElementById('vo-cap'); if (!t) return c.classList.remove('on'); c.textContent = t; c.classList.add('on') }, text) }
+const caption = async (text) => { await installOverlays(); await page.evaluate((t) => { const c = document.getElementById('vo-cap'); if (!t) return c.classList.remove('on'); c.textContent = t; c.classList.toggle('side', !!document.querySelector('.rc-scrim')); c.classList.add('on') }, text) }
 const card = async (html) => { await installOverlays(); await page.evaluate((h) => { const c = document.getElementById('vo-card'); if (!h) return c.classList.remove('on'); c.innerHTML = h; c.classList.add('on') }, html) }
 
 // ---- human-like interaction ----
@@ -97,7 +104,9 @@ const click = async (sel, text, pause = 300) => {
 const scrollBy = async (total, ms = 4000) => { const n = Math.ceil(ms / 40); for (let i = 0; i < n; i++) { await page.mouse.wheel({ deltaY: total / n }); await wait(40) } }
 const toTop = () => page.evaluate(() => (window.__lenis ? window.__lenis.scrollTo(0, { duration: 1.2 }) : scrollTo({ top: 0, behavior: 'smooth' })))
 const typeInto = async (sel, text, clear = false) => {
-  const c = await locate(sel, null, true); await wait(400); await moveTo(c[0], c[1]); await page.mouse.click(c[0], c[1])
+  if (!(await locate(sel, null, true))) throw new Error('not found: ' + sel)
+  await wait(600) // re-measure after the smooth scroll, or we type into whatever used to be there
+  const c = await locate(sel, null, false); await moveTo(c[0], c[1]); await page.mouse.click(c[0], c[1])
   if (clear) { await page.keyboard.down('Control'); await page.keyboard.press('a'); await page.keyboard.up('Control'); await page.keyboard.press('Backspace') }
   for (const ch of text) { await page.keyboard.type(ch); await wait(70) }
 }
@@ -185,8 +194,8 @@ await step('harvest + receipt', async () => {
   await typeInto('form.form input[type=number]', '46')
   await click('.chip', 'Eucalyptus'); await wait(400)
   await caption('Every ledger write prints a signed receipt - block hash, validator, barcode and QR.')
-  await click('form.form button.btn.lg'); await wait(6800)
-  await click('.rc-actions button', 'Tear off'); await wait(1600)
+  await click('form.form button.btn.lg'); await hold(5600)
+  await click('.rc-actions button', 'Tear off'); await hold(1700)
   await caption('')
 })
 
@@ -196,8 +205,8 @@ await step('lab', async () => {
   await page.select('select.input', 'HC-2026-0011'); await wait(700)
   await click('.chip', 'fails NMR'); await wait(2000)
   await caption('Even with clean chemistry, an NMR anomaly makes the batch FAIL - permanently.')
-  await click('form button.btn.lg'); await wait(6200)
-  await click('.rc-actions button', 'Tear off'); await wait(1300)
+  await click('form button.btn.lg'); await hold(5600)
+  await click('.rc-actions button', 'Tear off'); await hold(1700)
   await caption('')
 })
 
@@ -208,11 +217,12 @@ await step('hives', async () => {
   await caption('...and AI flags problems early: pre-swarm at 98% confidence, with advice and a 30-day yield forecast.')
   await wait(3800); await scrollBy(560, 3000); await wait(2000)
   await caption('Foulbrood in another hive is caught before it spreads to the whole apiary.')
+  await toTop(); await wait(1500) // let the smooth scroll finish, or the click lands where the button used to be
   await click('button', 'All hives'); await wait(1200)
   await click('.hivecard', 'HV-006'); await wait(3800)
   await caption('The last 14 days of sensor data are sealed on-chain as a Merkle proof.')
-  await click('button.btn', 'Save proof on chain'); await wait(5200)
-  const rc = await locate('.rc-actions button', 'Tear off', false); if (rc) { await click('.rc-actions button', 'Tear off'); await wait(1200) }
+  await click('button.btn', 'Save proof on chain'); await hold(5600)
+  const rc = await locate('.rc-actions button', 'Tear off', false); if (rc) { await click('.rc-actions button', 'Tear off'); await hold(1700) }
   await caption('')
 })
 
@@ -220,9 +230,10 @@ await step('supply chain', async () => {
   await caption('Processors and retailers log every custody handover. Rejected batches cannot move.')
   await click('.navitem', 'Supply Chain'); await wait(1100)
   await page.select('select.input', 'HC-2026-0002'); await wait(800)
-  await typeInto('form input[placeholder^="Type or pick"]', 'KVIC Processing Unit - Nagpur'); await wait(600)
-  await click('form.card button.btn'); await wait(5800)
-  await click('.rc-actions button', 'Tear off'); await wait(1200)
+  await typeInto('form input[placeholder^="Type or pick"]', 'KVIC Processing Unit - Nagpur')
+  await page.keyboard.press('Escape'); await wait(600) // close the datalist popup so it can't swallow the Save click
+  await click('form.card button.btn'); await hold(5600)
+  await click('.rc-actions button', 'Tear off'); await hold(1700)
   await caption('')
 })
 
