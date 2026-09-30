@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { useSettings } from '../lib/settings.jsx'
 import { traceBatch, PURITY_LIMITS, shortHash } from '../lib/chain'
+import { Reveal, useInView, motionOn } from '../lib/motion.jsx'
 import { Bil, CopyHash, fmtDate, fmtTime, HexMark, Icon, PageHead, QR, Seal, VERDICT_ICON, verifyUrl, useToast } from '../lib/ui.jsx'
 
 function Scanner({ onCode, onClose }) {
@@ -28,15 +29,37 @@ function Scanner({ onCode, onClose }) {
   )
 }
 
+function Checking({ tr, onDone }) {
+  const { t } = useSettings()
+  const [i, setI] = useState(0)
+  const N = 5
+  useEffect(() => {
+    if (i >= N) { const id = setTimeout(onDone, 250); return () => clearTimeout(id) }
+    const id = setTimeout(() => setI(i + 1), 300)
+    return () => clearTimeout(id)
+  }, [i, onDone])
+  return (
+    <div className="card checking rise" role="status" aria-live="polite">
+      <div className="row between"><span className="kicker">Verifying {tr.batchId}</span><button className="btn tertiary sm" onClick={onDone}>{t('chk.skip')}</button></div>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <div key={n} className={'chk' + (i >= n ? ' done' : i === n - 1 ? ' on' : '')}><Icon n={i >= n ? 'check_circle' : i === n - 1 ? 'progress_activity' : 'radio_button_unchecked'} fill={i >= n} />{t('chk.' + n)}</div>
+      ))}
+      <div className="chk-bar"><i style={{ width: (i / N) * 100 + '%' }} /></div>
+    </div>
+  )
+}
+
 export default function Verify({ arg }) {
   const { chain, batches, integrity } = useStore()
   const { t } = useSettings()
   const [input, setInput] = useState(arg || '')
   const [scanning, setScanning] = useState(false)
+  const [checked, setChecked] = useState('')
   const id = (arg || '').toUpperCase()
   const tr = id ? traceBatch(chain, id) : null
   useEffect(() => { setInput(arg || '') }, [arg])
   const go = (v) => { const m = String(v).match(/HC-\d{4}-\d{4}/i); if (String(v).trim()) location.hash = '#/verify/' + (m ? m[0].toUpperCase() : String(v).trim()) }
+  const finish = () => setChecked(id)
   const onCode = (text) => { setScanning(false); go(text) }
 
   return (
@@ -61,7 +84,7 @@ export default function Verify({ arg }) {
 
       {tr && !integrity.valid && <div className="notice critical"><Icon n="gpp_bad" />{t('v.integrity')}</div>}
       {tr && !tr.found && <div className="notice critical"><Icon n="gpp_bad" /><span><b>{t('v.notfound')}</b> <span className="mono">({tr.batchId})</span></span></div>}
-      {tr && tr.found && <Result key={tr.batchId} tr={tr} />}
+      {tr && tr.found && (checked === id || !motionOn() ? <Result key={tr.batchId} tr={tr} /> : <Checking key={'c' + id} tr={tr} onDone={finish} />)}
     </div>
   )
 }
@@ -94,6 +117,7 @@ function Result({ tr }) {
         <section className={'hero-v rise ' + tr.verdict} style={{ animationDelay: '.05s' }}>
           <HexMark className="wm" size={230} /><HexMark className="wm2" size={190} />
           <Seal value={tr.score} label={t('v.score')} />
+          {tr.verdict === 'AUTHENTIC' && [...Array(10)].map((_, k) => { const a = (k / 10) * 6.283; return <HexMark key={k} className="burst" size={14} style={{ '--x': Math.cos(a) * 130 + 'px', '--y': Math.sin(a) * 100 + 'px' }} /> })}
           <span className="mission-tag"><Icon n={VERDICT_ICON[tr.verdict]} size="sm" fill /> KVIC Honey Mission · {t('verdict.' + tr.verdict).split(' - ')[0]}</span>
           <h2>{t('verdict.' + tr.verdict)}</h2>
           <div className="hi" lang="hi">{tb('verdict.' + tr.verdict)}</div>
@@ -110,7 +134,7 @@ function Result({ tr }) {
         )}
 
         {/* Origin dossier */}
-        <section className="card">
+        <Reveal as="section" className="card" delay={0}>
           <div className="head"><div><h3><Icon n="nest_eco_area" />{t('v.origin')}</h3><Bil k="v.origin" /></div>{hive0 && <span className="hash">{hive0.cluster}</span>}</div>
           <dl className="spec" style={{ margin: '14px 0 0' }}>
             <div><dt>{t('v.beekeeper')}</dt><b>{h.harvestedBy}</b></div>
@@ -122,44 +146,44 @@ function Result({ tr }) {
             <div><dt>{t('v.harvested')}</dt><b>{fmtDate(tr.harvest.timestamp)}</b></div>
             {expert && <div><dt>{t('v.method')}</dt><b>{h.method}</b></div>}
           </dl>
-        </section>
+        </Reveal>
 
         {/* Lab certificate */}
-        <section className="card">
+        <Reveal as="section" className="card">
           <div className="head"><div><h3><Icon n="biotech" />{t('v.lab')}</h3><Bil k="v.lab" /></div>
             {lab ? <span className={'pill ' + (lab.pass ? 'ok' : 'bad')}><Icon n={lab.pass ? 'verified' : 'close'} size="sm" fill /> {lab.pass ? t('v.pass') : t('v.fail')}</span> : <span className="pill info">{t('v.nolab')}</span>}</div>
           {lab && (
             <>
               <div className="row between" style={{ margin: '12px 0', fontSize: '.8rem' }}><span><span className="kicker">Laboratory</span><br /><b>{lab.lab}</b></span><span style={{ textAlign: 'right' }}><span className="kicker">Report</span><br /><span className="mono">{lab.reportHash}</span></span></div>
-              <div>{Object.entries(PURITY_LIMITS).map(([k, l]) => {
+              <div>{Object.entries(PURITY_LIMITS).map(([k, l], i) => {
                 const v = lab.tests[k]
                 const bad = (l.max !== undefined && v > l.max) || (l.min !== undefined && v < l.min)
                 return (
-                  <div key={k} className={'labrow' + (bad ? ' out' : '')}>
+                  <Reveal key={k} delay={i * 70} variant="left" className={'labrow' + (bad ? ' out' : '')}>
                     <span><b>{l.label}</b><small>Limit {l.max !== undefined ? '≤ ' + l.max : '≥ ' + l.min} {l.unit}</small></span>
                     <span className="row" style={{ gap: 10 }}><span className="num">{v}{l.unit === '%' ? '%' : ' ' + l.unit}</span>
                       <span className={'pill ' + (bad ? 'bad' : 'ok')}><Icon n={bad ? 'close' : 'check'} size="sm" />{bad ? t('v.fail') : t('v.pass')}</span></span>
-                  </div>
+                  </Reveal>
                 )
               })}</div>
               <p className="small faint" style={{ margin: '10px 0 0' }}>{fmtDate(tr.lab.timestamp)}{expert && <> · block <span className="mono">{shortHash(tr.lab.hash)}</span></>}</p>
             </>
           )}
-        </section>
+        </Reveal>
 
         {/* Journey */}
-        <section className="card">
+        <Reveal as="section" className="card">
           <div className="head"><div><h3><Icon n="route" />{t('v.journey')}</h3><Bil k="v.journey" /></div><span className="pill info">{tr.events.length + tr.hives.length + tr.attestations.length} events</span></div>
-          <div className="timeline" style={{ marginTop: 18 }}>
-            {tr.hives.map((b) => <Step key={b.hash} icon="hive" when={fmtDate(b.timestamp)} title={`Hive ${b.payload.hiveId} registered`} note={`${b.payload.owner}, ${b.payload.village}`} b={b} expert={expert} />)}
+          <Timeline>
+            {tr.hives.map((b) => <Step key={b.hash} i={0} icon="hive" when={fmtDate(b.timestamp)} title={`Hive ${b.payload.hiveId} registered`} note={`${b.payload.owner}, ${b.payload.village}`} b={b} expert={expert} />)}
             {tr.attestations.map((b) => <Step key={b.hash} icon="sensors" good when={fmtDate(b.timestamp)} title={`IoT data anchored (${b.payload.hiveId})`} note={`${b.payload.samples} readings sealed into a Merkle root`} b={b} expert={expert} />)}
             {tr.events.map((b) => {
               const p = b.payload
               const m = { HARVEST_LOGGED: ['water_drop', `Harvest logged - ${p.quantityKg} kg ${p.floral}`, `Cold extraction by ${p.harvestedBy}`], LAB_CERTIFIED: [p.pass ? 'biotech' : 'science', `Lab ${p.pass ? 'certified' : 'rejected'}`, p.lab], CUSTODY_TRANSFER: ['swap_horiz', `${p.from} → ${p.to}`, p.note], RETAIL_PACKED: ['inventory_2', `Packed ${p.bottles} × ${p.sizeGrams} g`, p.retailer] }[b.type] || ['circle', b.type, '']
               return <Step key={b.hash} icon={m[0]} good={b.type === 'LAB_CERTIFIED' && p.pass} fail={b.type === 'LAB_CERTIFIED' && !p.pass} when={fmtDate(b.timestamp)} title={m[1]} note={m[2]} b={b} expert={expert} />
             })}
-          </div>
-        </section>
+          </Timeline>
+        </Reveal>
 
         <details className="acc">
           <summary><Icon n="key" />{t('v.details')}</summary>
@@ -170,7 +194,7 @@ function Result({ tr }) {
         </details>
       </div>
 
-      <aside className="stack" style={{ position: 'sticky', top: 76 }}>
+      <aside className="stack rise" style={{ position: 'sticky', top: 76, animationDelay: '.3s' }}>
         <div className="card"><div className="head"><h3><Icon n="qr_code_2" />{t('v.qr')}</h3></div><div style={{ marginTop: 14 }}><QR batchId={tr.batchId} /></div></div>
         <button className="btn lg" onClick={copy}><Icon n="ios_share" />{t('v.share')}</button>
       </aside>
@@ -178,12 +202,17 @@ function Result({ tr }) {
   )
 }
 
+function Timeline({ children }) {
+  const [ref, inView] = useInView({ threshold: 0.2 })
+  return <div ref={ref} className={'timeline' + (inView ? ' grow' : '')} style={{ marginTop: 18 }}>{children}</div>
+}
+
 function Step({ icon, title, note, when, good, fail, b, expert }) {
   return (
-    <div className={'tl' + (good ? ' good' : '') + (fail ? ' fail' : '')}>
+    <Reveal variant="left" className={'tl' + (good ? ' good' : '') + (fail ? ' fail' : '')}>
       <span className="m"><Icon n={icon} size="sm" fill={good} /></span>
       <span className="when">{when}{expert && <> · #{b.index} · {shortHash(b.hash)}</>}</span>
       <b>{title}</b>{note && <p>{note}</p>}
-    </div>
+    </Reveal>
   )
 }

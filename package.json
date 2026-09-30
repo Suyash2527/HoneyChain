@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint:build": "vite build",
+    "start": "vite preview --host --port 4173",
+    "deck": "node docs/build-deck.mjs",
+    "deploy:vercel": "vercel deploy --prod --yes"
   },
   "dependencies": {
     "html5-qrcode": "^2.3.8",
@@ -18,5 +22,14 @@
     "@vitejs/plugin-react": "^4.3.4",
     "pptxgenjs": "^4.0.1",
     "vite": "^5.4.11"
-  }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "description": "Honey Chain - blockchain honey traceability and smart beekeeping (SIH26021)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Suyash2527/HoneyChain.git"
+  },
+  "license": "MIT"
 }

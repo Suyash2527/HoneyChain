@@ -5,7 +5,7 @@ const mq = () => window.matchMedia('(prefers-color-scheme: dark)')
 
 export const ROLE_HOME = { consumer: 'verify', beekeeper: 'hives', lab: 'lab', processor: 'supply', officer: 'ledger' }
 const KEY = 'honeychain.settings.v2'
-const DEFAULTS = { lang: 'en', theme: 'auto', size: 1, mode: 'simple', role: 'consumer' }
+const DEFAULTS = { lang: 'en', theme: 'auto', size: 1, mode: 'simple', role: 'consumer', motion: 'auto' }
 const Ctx = createContext(null)
 export const useSettings = () => useContext(Ctx)
 
@@ -19,7 +19,9 @@ export function SettingsProvider({ children }) {
     try { localStorage.setItem(KEY, JSON.stringify(s)) } catch { /* ignore */ }
     const root = document.documentElement
     const apply = () => { root.dataset.theme = s.theme; root.dataset.scheme = s.theme === 'auto' ? (mq().matches ? 'dark' : 'light') : s.theme }
-    apply()
+    const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const applyMotion = () => { root.dataset.motion = s.motion === 'auto' ? (reduce() ? 'off' : 'on') : s.motion }
+    apply(); applyMotion()
     const m = mq(); m.addEventListener('change', apply)
     root.lang = s.lang
     root.style.fontSize = [15, 16.5, 19][s.size] + 'px'

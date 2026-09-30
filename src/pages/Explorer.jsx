@@ -3,6 +3,7 @@ import { useStore } from '../lib/store.jsx'
 import { useSettings } from '../lib/settings.jsx'
 import { BLOCK_TYPES as T, shortHash } from '../lib/chain'
 import { fmtTime, Icon, PageHead, useToast } from '../lib/ui.jsx'
+import { Reveal } from '../lib/motion.jsx'
 
 export default function Explorer() {
   const { chain, integrity, tamper, reset } = useStore()
@@ -25,17 +26,17 @@ export default function Explorer() {
       </div>
 
       <div className="stack sm">
-        {chain.slice().reverse().map((b) => {
+        {chain.slice().reverse().map((b, i) => {
           const r = bad.get(b.index)
           const broken = r && !r.ok
           return (
-            <div key={b.index} className={'block' + (broken ? ' badblk' : '')}>
+            <Reveal key={b.index} delay={Math.min(i, 8) * 40} variant="left" className={'block' + (broken ? ' badblk' : '')}>
               <div className="row between"><span className="row" style={{ gap: 8 }}><span className="hash id">#{b.index}</span><span className="pill info">{b.type.replaceAll('_', ' ')}</span>{broken && <span className="pill bad"><Icon n="warning" size="sm" fill />{t('x.altered')}</span>}</span>
                 <span className="mono faint">{fmtTime(b.timestamp)}{expert && ' · ' + b.validator}</span></div>
               {expert && <div className="mono faint" style={{ marginTop: 6, wordBreak: 'break-all' }}>{shortHash(b.hash, 16)} ← {shortHash(b.prevHash, 16)}</div>}
               <button className="btn tertiary sm" style={{ padding: 0, marginTop: 6 }} onClick={() => setOpen(open === b.index ? null : b.index)}>{open === b.index ? t('x.hidep') : t('x.showp')}</button>
               {open === b.index && <pre>{JSON.stringify(b.payload, null, 2)}</pre>}
-            </div>
+            </Reveal>
           )
         })}
       </div>

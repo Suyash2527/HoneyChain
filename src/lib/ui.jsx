@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { useSettings } from './settings.jsx'
+import { CountUp } from './motion.jsx'
 
 export const fmtDate = (ts) => new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 export const fmtTime = (ts) => new Date(ts).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
@@ -44,7 +45,7 @@ export function Spark({ data, color = 'var(--primary)', band }) {
   const y = (v) => 38 - ((v - lo) / span) * 34 - 2
   const pts = data.map((v, i) => `${(i / (data.length - 1 || 1)) * 300},${y(v)}`).join(' ')
   return (
-    <svg className="spark" viewBox="0 0 300 40" preserveAspectRatio="none" role="img" aria-label="trend">
+    <svg className="spark draw" viewBox="0 0 300 40" preserveAspectRatio="none" role="img" aria-label="trend">
       {band && <rect x="0" width="300" y={y(band[1])} height={Math.max(2, y(band[0]) - y(band[1]))} fill="currentColor" opacity=".12" style={{ color: 'var(--ok)' }} />}
       <polyline points={pts} fill="none" stroke={color} strokeWidth="1.8" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
     </svg>
@@ -67,7 +68,7 @@ export function Seal({ value, label }) {
         <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="7" />
         <circle className="fg" cx="60" cy="60" r="50" fill="none" stroke="var(--amber)" strokeWidth="8" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C - (C * v) / 100} />
       </svg>
-      <div className="c"><b>{value}</b><small>{label}</small></div>
+      <div className="c"><b><CountUp to={value} duration={1300} /></b><small>{label}</small></div>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { BLOCK_TYPES as T, computeMerkleRoot, shortHash } from '../lib/chain'
 import { SCENARIOS, nextReading } from '../lib/sensors'
 import { diagnose, forecastYield } from '../lib/ai.js'
 import { Icon, PageHead, Spark, useToast } from '../lib/ui.jsx'
+import { CountUp, Reveal } from '../lib/motion.jsx'
 
 const SEV = { ok: ['check_circle', 'ok'], warn: ['error', 'warn'], critical: ['emergency', 'bad'] }
 
@@ -21,20 +22,20 @@ export default function SmartHive() {
     <div className="stack">
       <PageHead kicker="Apiary monitoring" title={t('hv.title')} bilKey="hv.title" sub={t('hv.sub')} />
       <div className="grid g4">
-        <div className="metric"><div className="lbl">Hives</div><b>{rows.length}</b></div>
-        <div className="metric"><div className="lbl">{t('hv.status.ok')}</div><b style={{ color: 'var(--ok)' }}>{count('ok')}</b></div>
-        <div className="metric"><div className="lbl">{t('hv.status.warn')}</div><b style={{ color: 'var(--caution)' }}>{count('warn')}</b></div>
-        <div className="metric"><div className="lbl">{t('hv.status.critical')}</div><b style={{ color: 'var(--danger)' }}>{count('critical')}</b></div>
+        <div className="metric"><div className="lbl">Hives</div><b><CountUp to={rows.length} /></b></div>
+        <div className="metric"><div className="lbl">{t('hv.status.ok')}</div><b style={{ color: 'var(--ok)' }}><CountUp to={count('ok')} /></b></div>
+        <div className="metric"><div className="lbl">{t('hv.status.warn')}</div><b style={{ color: 'var(--caution)' }}><CountUp to={count('warn')} /></b></div>
+        <div className="metric"><div className="lbl">{t('hv.status.critical')}</div><b style={{ color: 'var(--danger)' }}><CountUp to={count('critical')} /></b></div>
       </div>
       <div className="grid g3">
-        {rows.map(({ h, r, dx, last }) => (
-          <button key={h.hiveId} className={'hivecard ' + dx.severity} onClick={() => setSel(h.hiveId)}>
+        {rows.map(({ h, r, dx, last }, idx) => (
+          <Reveal key={h.hiveId} delay={idx * 70} variant="scale"><button className={'hivecard ' + dx.severity} style={{ width: '100%' }} onClick={() => setSel(h.hiveId)}>
             <div className="row between"><span className="hash id">{h.hiveId}</span><span className={'pill ' + SEV[dx.severity][1]}><Icon n={SEV[dx.severity][0]} size="sm" fill />{t('hv.status.' + dx.severity)}</span></div>
             <span className="muted small">{h.owner} · {h.village}</span>
             <b style={{ fontFamily: 'var(--serif)', fontSize: '1.1rem' }}>{dx.top.label}</b>
             <div className="row small mono" style={{ gap: 14 }}><span>{last.broodTemp.toFixed(1)}°C</span><span>{last.weight.toFixed(0)} kg</span><span>{last.humidity.toFixed(0)}% RH</span></div>
             <Spark data={r.slice(-72).map((x) => x.weight)} />
-          </button>
+          </button></Reveal>
         ))}
       </div>
     </div>

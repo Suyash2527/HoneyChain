@@ -12,6 +12,7 @@ import Verify from './pages/Verify.jsx'
 import Explorer from './pages/Explorer.jsx'
 import Deploy from './pages/Deploy.jsx'
 import Tour from './Tour.jsx'
+import { ScrollProgress, useRipple } from './lib/motion.jsx'
 
 // [path, i18n key, icon, group, roles that see it as suggested, page]
 export const ROUTES = [
@@ -66,6 +67,7 @@ function SettingsDrawer() {
         <div className="stack sm"><b>{t('set.lang')}</b><Seg value={s.lang} options={LANGS} onPick={(v) => set({ lang: v })} /></div>
         <div className="stack sm"><b>{t('set.theme')}</b><Seg value={s.theme} options={[['auto', t('set.auto')], ['light', t('set.light')], ['dark', t('set.dark')]]} onPick={(v) => set({ theme: v })} /></div>
         <div className="stack sm"><b>{t('set.size')}</b><Seg value={s.size} options={[[0, 'A'], [1, 'A+'], [2, 'A++']]} onPick={(v) => set({ size: v })} /></div>
+        <div className="stack sm"><b>{t('set.motion')}</b><Seg value={s.motion} options={[['auto', t('set.auto')], ['on', t('set.on')], ['off', t('set.off')]]} onPick={(v) => set({ motion: v })} /></div>
         <div className="stack sm"><b>{t('set.mode')}</b><Seg value={s.mode} options={[['simple', t('set.simple')], ['expert', t('set.expert')]]} onPick={(v) => set({ mode: v })} /><span className="muted small">{t('set.expert.d')}</span></div>
         <div className="stack sm"><b>{t('set.role')}</b>
           <div className="row">{Object.keys(ROLE_HOME).map((r) => <button key={r} className={'chip' + (s.role === r ? ' on' : '')} onClick={() => set({ role: r })}>{t('role.' + r)}</button>)}</div></div>
@@ -84,6 +86,11 @@ export default function App() {
   const [tour, setTour] = useState(false)
   const [q, setQ] = useState('')
   const route = ROUTES.find((r) => r[0] === path) || ROUTES[0]
+  useRipple()
+  useEffect(() => {
+    const on = (e) => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) { e.preventDefault(); document.getElementById('topsearch')?.focus() } }
+    addEventListener('keydown', on); return () => removeEventListener('keydown', on)
+  }, [])
   const Page = route[5]
   useEffect(() => setMenu(false), [path])
   useEffect(() => { const on = () => setTour(true); window.addEventListener('hc-tour', on); return () => window.removeEventListener('hc-tour', on) }, [])
@@ -95,6 +102,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <ScrollProgress />
       {menu && <div className="scrim" onClick={() => setMenu(false)} />}
       <aside className={'rail' + (menu ? ' open' : '')}>
         <a className="brand" href="#/"><Emblem /><span><b>Honey Chain</b><small>KVIC Honey Mission</small></span></a>
@@ -115,7 +123,7 @@ export default function App() {
         <header className="top">
           <button className="iconbtn menu-btn" onClick={() => setMenu(true)} aria-label="Menu"><Icon n="menu" /></button>
           <form className="search" onSubmit={go} role="search">
-            <input className="input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('top.search')} aria-label={t('top.search')} />
+            <input id="topsearch" className="input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('top.search')} aria-label={t('top.search')} />
             <button className="btn" aria-label={t('v.go')}><Icon n="search" /></button>
           </form>
           <span className="spacer" />
@@ -123,7 +131,7 @@ export default function App() {
           <button className="iconbtn" onClick={() => setTour(true)} title={t('top.tour')} aria-label={t('top.tour')}><Icon n="slideshow" /></button>
           <button className="iconbtn" onClick={() => s.setOpen(true)} title={t('top.settings')} aria-label={t('top.settings')}><Icon n="tune" /></button>
         </header>
-        <main className="page">{ready ? <Page arg={arg} /> : <p className="muted">Loading ledger…</p>}</main>
+        <main className="page">{ready ? <div className="page-in" key={path + '/' + arg}><Page arg={arg} /></div> : <p className="muted">Loading ledger…</p>}</main>
       </div>
 
       <nav className="tabbar" aria-label="Primary">

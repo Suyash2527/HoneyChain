@@ -9,7 +9,7 @@ const en = {
   'nav.lab': 'Lab Tests', 'nav.supply': 'Supply Chain', 'nav.ledger': 'Ledger', 'nav.rollout': 'Rollout Plan', 'nav.more': 'More',
   'group.buyers': 'For buyers', 'group.beekeepers': 'For beekeepers', 'group.partners': 'Lab & supply chain', 'group.authority': 'For authorities',
   'top.search': 'Enter batch ID (e.g. HC-2026-0001)', 'top.tour': 'Guided tour', 'top.settings': 'Settings',
-  'chain.ok': 'Ledger safe', 'chain.bad': 'Tampering found',
+  'chain.ok': 'Ledger safe', 'chk.1': 'Reading batch from the ledger', 'chk.2': 'Verifying block hashes', 'chk.3': 'Checking validator signatures', 'chk.4': 'Matching lab results to limits', 'chk.5': 'Calculating trust score', 'chk.skip': 'Skip', 'home.chain': 'Live from the ledger', 'story.title': 'From hive to jar', 'story.sub': 'Scroll to follow one batch of honey through the system.', 'chain.bad': 'Tampering found',
 
   'home.hero1': 'Know your honey.', 'home.hero2': 'Trust every drop.',
   'home.sub': 'Scan the QR on the jar to see where the honey came from, whether it passed lab tests, and who handled it.',
@@ -66,7 +66,7 @@ const en = {
   'd.title': 'Rollout plan',
 
   'set.title': 'Settings', 'set.lang': 'Language', 'set.theme': 'Theme', 'set.auto': 'Auto', 'set.light': 'Light', 'set.dark': 'Dark', 'set.size': 'Text size',
-  'set.mode': 'Detail level', 'set.simple': 'Simple', 'set.expert': 'Expert', 'set.expert.d': 'Expert shows block hashes and validator details.', 'set.role': 'My role', 'set.reset': 'Reset demo data', 'set.done': 'Done',
+  'set.motion': 'Animations', 'set.on': 'On', 'set.off': 'Off', 'set.mode': 'Detail level', 'set.simple': 'Simple', 'set.expert': 'Expert', 'set.expert.d': 'Expert shows block hashes and validator details.', 'set.role': 'My role', 'set.reset': 'Reset demo data', 'set.done': 'Done',
   'tour.next': 'Next', 'tour.prev': 'Back', 'tour.skip': 'End tour', 'tour.auto': 'Auto-play',
   'common.close': 'Close',
 }
@@ -75,7 +75,7 @@ const hi = {
   'nav.home': 'होम', 'nav.verify': 'शहद जाँचें', 'nav.harvest': 'नई फसल', 'nav.hives': 'मेरे छत्ते', 'nav.lab': 'लैब जाँच', 'nav.supply': 'आपूर्ति श्रृंखला', 'nav.ledger': 'बहीखाता', 'nav.rollout': 'विस्तार योजना', 'nav.more': 'और',
   'group.buyers': 'खरीदारों के लिए', 'group.beekeepers': 'मधुमक्खी पालकों के लिए', 'group.partners': 'लैब और आपूर्ति', 'group.authority': 'अधिकारियों के लिए',
   'top.search': 'बैच नंबर लिखें (जैसे HC-2026-0001)', 'top.tour': 'गाइडेड टूर', 'top.settings': 'सेटिंग',
-  'chain.ok': 'बहीखाता सुरक्षित', 'chain.bad': 'छेड़छाड़ मिली',
+  'chain.ok': 'बहीखाता सुरक्षित', 'chk.1': 'बहीखाते से बैच पढ़ा जा रहा है', 'chk.2': 'ब्लॉक हैश जाँचे जा रहे हैं', 'chk.3': 'वैलिडेटर हस्ताक्षर जाँचे जा रहे हैं', 'chk.4': 'लैब परिणाम सीमाओं से मिलाए जा रहे हैं', 'chk.5': 'भरोसा स्कोर निकाला जा रहा है', 'chk.skip': 'छोड़ें', 'home.chain': 'बहीखाते से सीधा', 'story.title': 'छत्ते से जार तक', 'story.sub': 'शहद के एक बैच का सफ़र देखने के लिए स्क्रॉल करें।', 'chain.bad': 'छेड़छाड़ मिली',
 
   'home.hero1': 'अपने शहद को जानिए।', 'home.hero2': 'हर बूँद पर भरोसा।',
   'home.sub': 'जार पर लगा QR स्कैन करें और जानें कि शहद कहाँ से आया, लैब जाँच में पास हुआ या नहीं, और किसके हाथों से गुज़रा।',
@@ -131,7 +131,7 @@ const hi = {
   'd.title': 'विस्तार योजना',
 
   'set.title': 'सेटिंग', 'set.lang': 'भाषा', 'set.theme': 'थीम', 'set.auto': 'ऑटो', 'set.light': 'हल्की', 'set.dark': 'गहरी', 'set.size': 'अक्षर का आकार',
-  'set.mode': 'विवरण का स्तर', 'set.simple': 'सरल', 'set.expert': 'विशेषज्ञ', 'set.expert.d': 'विशेषज्ञ मोड में ब्लॉक हैश और वैलिडेटर विवरण दिखते हैं।', 'set.role': 'मेरी भूमिका', 'set.reset': 'डेमो डेटा रीसेट करें', 'set.done': 'हो गया',
+  'set.motion': 'एनिमेशन', 'set.on': 'चालू', 'set.off': 'बंद', 'set.mode': 'विवरण का स्तर', 'set.simple': 'सरल', 'set.expert': 'विशेषज्ञ', 'set.expert.d': 'विशेषज्ञ मोड में ब्लॉक हैश और वैलिडेटर विवरण दिखते हैं।', 'set.role': 'मेरी भूमिका', 'set.reset': 'डेमो डेटा रीसेट करें', 'set.done': 'हो गया',
   'tour.next': 'आगे', 'tour.prev': 'पीछे', 'tour.skip': 'टूर बंद करें', 'tour.auto': 'ऑटो-प्ले',
   'common.close': 'बंद करें',
 }
