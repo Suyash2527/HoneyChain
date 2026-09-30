@@ -73,27 +73,40 @@ export const soundOn = () => { try { return localStorage.getItem('honeychain.sou
 export const setSound = (on) => { try { localStorage.setItem('honeychain.sound', on ? 'on' : 'off') } catch { /* ignore */ } }
 
 let ctx
-export function printerSound(ms = 2400) {
+export const FEED_BURSTS = [[250, 470], [560, 800], [850, 1050], [1200, 1450], [1490, 1700], [1850, 2080], [2200, 2420], [2480, 2700], [2900, 3100], [3180, 3360], [3360, 3480]] // [startMs, endMs] line-feed bursts; holds between them are the head printing
+
+function noise(ms, gain, freq, q = 1.2, at = 0) {
+  const n = Math.max(8, Math.floor(ctx.sampleRate * ms / 1000))
+  const buf = ctx.createBuffer(1, n, ctx.sampleRate); const d = buf.getChannelData(0)
+  for (let k = 0; k < n; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / n)
+  const src = ctx.createBufferSource(); src.buffer = buf
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = q
+  const g = ctx.createGain(); g.gain.value = gain
+  src.connect(bp); bp.connect(g); g.connect(ctx.destination); src.start(ctx.currentTime + at / 1000)
+}
+
+// Stepper-motor whir under the whole print, ratchet clicks during each feed burst, soft head buzz during holds.
+export function printerSound(ms = 3700) {
   if (!soundOn()) return
   try {
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)()
     if (ctx.state === 'suspended') ctx.resume()
-    const clicks = Math.floor(ms / 85)
-    for (let i = 0; i < clicks; i++) {
-      const t = ctx.currentTime + i * 0.085
-      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.02, ctx.sampleRate)
-      const d = buf.getChannelData(0)
-      for (let k = 0; k < d.length; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / d.length)
-      const src = ctx.createBufferSource(); src.buffer = buf
-      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2200 + (i % 3) * 500; bp.Q.value = 1.2
-      const g = ctx.createGain(); g.gain.value = 0.16
-      src.connect(bp); bp.connect(g); g.connect(ctx.destination); src.start(t)
+    const t0 = ctx.currentTime
+    const osc = ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(70, t0)
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0)
+    for (const [a, b] of FEED_BURSTS) {
+      g.gain.linearRampToValueAtTime(0.07, t0 + a / 1000); osc.frequency.linearRampToValueAtTime(95, t0 + b / 1000)
+      g.gain.linearRampToValueAtTime(0.012, t0 + (b + 20) / 1000); osc.frequency.linearRampToValueAtTime(70, t0 + (b + 60) / 1000)
     }
-    // final "tear" tick
-    const t2 = ctx.currentTime + ms / 1000 + 0.05
-    const o = ctx.createOscillator(); const g2 = ctx.createGain(); o.type = 'square'; o.frequency.value = 900
-    g2.gain.setValueAtTime(0.05, t2); g2.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.09)
-    o.connect(g2); g2.connect(ctx.destination); o.start(t2); o.stop(t2 + 0.1)
+    g.gain.linearRampToValueAtTime(0.0001, t0 + ms / 1000)
+    osc.connect(lp); lp.connect(g); g.connect(ctx.destination); osc.start(t0); osc.stop(t0 + ms / 1000 + 0.1)
+    FEED_BURSTS.forEach(([a, b], bi) => {
+      for (let t = a; t < b; t += 34) noise(14, 0.17, 2600 + ((t / 34) % 3) * 600, 1.4, t)       // paper feed ratchet
+      const next = FEED_BURSTS[bi + 1]
+      if (next) for (let t = b + 14; t < next[0] - 10; t += 62) noise(18, 0.05, 6500, 2, t)       // print-head buzz
+    })
+    noise(70, 0.22, 900, 1, ms - 50) // final clunk as the feed stops
   } catch { /* audio unavailable */ }
 }
 

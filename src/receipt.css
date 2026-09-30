@@ -124,3 +124,53 @@
 .stub { top: -14px; z-index: 2; height: 26px; animation: stubGo 2.1s ease-in forwards; }
 @keyframes stubGo { 0%, 40% { transform: translateY(0) rotate(0); } 55% { transform: translateY(2px) rotate(-.6deg); } 100% { transform: translateY(-120%); } }
 [data-motion="off"] .crack { display: none; }
+
+
+/* ===== Printing realism: irregular line-feed bursts, vibration, thermal-head glow, settle ===== */
+.paper.printing { animation: feed2 3700ms linear both, jitter .09s linear infinite; }
+@keyframes feed2 {
+  0% { transform: translateY(-100%); }
+  6.757% { transform: translateY(-100.00%); animation-timing-function: steps(4, end); }
+  12.703% { transform: translateY(-92.00%); }
+  15.135% { transform: translateY(-92.00%); animation-timing-function: steps(4, end); }
+  21.622% { transform: translateY(-82.00%); }
+  22.973% { transform: translateY(-82.00%); animation-timing-function: steps(4, end); }
+  28.378% { transform: translateY(-73.00%); }
+  32.432% { transform: translateY(-73.00%); animation-timing-function: steps(5, end); }
+  39.189% { transform: translateY(-62.00%); }
+  40.27% { transform: translateY(-62.00%); animation-timing-function: steps(4, end); }
+  45.946% { transform: translateY(-52.00%); }
+  50.0% { transform: translateY(-52.00%); animation-timing-function: steps(4, end); }
+  56.216% { transform: translateY(-42.00%); }
+  59.459% { transform: translateY(-42.00%); animation-timing-function: steps(4, end); }
+  65.405% { transform: translateY(-32.00%); }
+  67.027% { transform: translateY(-32.00%); animation-timing-function: steps(4, end); }
+  72.973% { transform: translateY(-22.00%); }
+  78.378% { transform: translateY(-22.00%); animation-timing-function: steps(4, end); }
+  83.784% { transform: translateY(-12.00%); }
+  85.946% { transform: translateY(-12.00%); animation-timing-function: steps(3, end); }
+  90.811% { transform: translateY(-4.00%); }
+  90.811% { transform: translateY(-4.00%); animation-timing-function: steps(2, end); }
+  94.054% { transform: translateY(1.40%); }
+  97.297% { transform: translateY(0%); animation-timing-function: ease-out; }
+  100% { transform: translateY(0%); }
+}
+@keyframes jitter {
+  0% { translate: 0 0; rotate: 0deg; }
+  25% { translate: .5px .2px; rotate: .05deg; }
+  50% { translate: -.4px 0; rotate: -.04deg; }
+  75% { translate: .3px -.2px; rotate: .03deg; }
+  100% { translate: 0 0; rotate: 0deg; }
+}
+/* a long strip swings and settles once it stops */
+.paper.settle { transform-origin: 50% 0; animation: settle 1.25s ease-out both; }
+@keyframes settle {
+  0% { rotate: 1.3deg; } 22% { rotate: -.95deg; } 44% { rotate: .6deg; } 64% { rotate: -.33deg; } 82% { rotate: .14deg; } 100% { rotate: 0deg; }
+}
+/* thermal print-head heat line at the slot */
+.slot::before { content: ''; position: absolute; z-index: 2; left: 10px; right: 10px; top: 2px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #ff8a2a 20%, #ffd08a 50%, #ff8a2a 80%, transparent); box-shadow: 0 0 8px 2px rgba(255, 138, 42, .55); opacity: 0; }
+.printer.on .slot::before { animation: head .17s steps(2, end) infinite; }
+@keyframes head { 0% { opacity: .95; } 50% { opacity: .3; } 100% { opacity: .8; } }
+/* thermal-printed text is slightly soft and grey rather than pure black */
+.paper { color: #25231f; }
+[data-motion="off"] .paper.settle, [data-motion="off"] .slot::before { animation: none !important; }

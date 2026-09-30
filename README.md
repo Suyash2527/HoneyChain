@@ -4,6 +4,8 @@
 
 Consumers scan a QR code on a jar and see where the honey came from, whether it passed laboratory purity tests, and who handled it. Beekeepers get IoT hive monitoring with AI health diagnosis and yield forecasting. Every record is written to a tamper-evident ledger.
 
+**Live demo:** https://honey-chain-rust.vercel.app  ·  mirror: https://suyash2527.github.io/HoneyChain/
+
 > **Status: working prototype.** The ledger runs in the browser and sensor data is simulated. See [What is real vs simulated](#what-is-real-vs-simulated).
 
 ## Features

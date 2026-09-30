@@ -4,7 +4,7 @@ import { buildReceipt, receiptText, printerSound, tearSound, soundOn, setSound }
 import { verifyUrl, Icon } from './lib/ui.jsx'
 import { motionOn } from './lib/motion.jsx'
 
-const PRINT_MS = 2600
+const PRINT_MS = 3700
 
 // A real tear is never regular: random teeth, and the stub's edge is the exact complement of the strip's.
 function makeTear() {
@@ -63,8 +63,9 @@ export default function Receipt() {
     window.__lenis?.stop()
     QRCode.toDataURL(r.batchId ? verifyUrl(r.batchId) : location.href, { width: 240, margin: 0, color: { dark: '#1b1a17', light: '#fbf8f0' } }).then(setQr)
     if (motionOn()) printerSound(PRINT_MS - 300)
-    const id = setTimeout(() => setPhase('done'), motionOn() ? PRINT_MS : 0)
-    return () => { clearTimeout(id); window.__lenis?.start() }
+    const id = setTimeout(() => setPhase('settle'), motionOn() ? PRINT_MS : 0)
+    const id2 = motionOn() ? setTimeout(() => setPhase('done'), PRINT_MS + 1300) : 0
+    return () => { clearTimeout(id); clearTimeout(id2); window.__lenis?.start() }
   }, [r])
 
   useEffect(() => { if (phase === 'done') closeRef.current?.focus() }, [phase])
@@ -84,6 +85,7 @@ export default function Receipt() {
 
   if (!r) return null
   const printing = phase === 'printing'
+  const ready = phase === 'settle' || phase === 'done'
   const copy = () => navigator.clipboard?.writeText(receiptText(r))
   const wa = () => window.open('https://wa.me/?text=' + encodeURIComponent(receiptText(r)), '_blank', 'noopener')
   const toggleSound = () => { setSound(!sound); setSoundState(!sound) }
@@ -99,9 +101,9 @@ export default function Receipt() {
           <div className="slot" />
         </div>
 
-        <div className={'feed' + (phase === 'done' ? ' done' : '') + (phase === 'torn' || phase === 'pull' ? ' ' + phase : '')}>
+        <div className={'feed' + (ready ? ' done' : '') + (phase === 'torn' || phase === 'pull' ? ' ' + phase : '')}>
           {phase === 'torn' && tear && <div className="stub" aria-hidden="true" style={{ clipPath: tear.stub }} />}
-          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'pull' ? ' pull' : '') + (phase === 'torn' ? ' torn' : '')} style={phase === 'torn' && tear ? { clipPath: tear.strip } : undefined} aria-live="polite">
+          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'settle' ? ' settle' : '') + (phase === 'pull' ? ' pull' : '') + (phase === 'torn' ? ' torn' : '')} style={phase === 'torn' && tear ? { clipPath: tear.strip } : undefined} aria-live="polite">
             {phase === 'pull' && <span className="crack" aria-hidden="true" />}
             <header className="rc-head">
               <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,2 44,14 44,34 24,46 4,34 4,14" fill="none" stroke="#1b1a17" strokeWidth="2.5" /><circle cx="24" cy="24" r="5" fill="#1b1a17" /></svg>

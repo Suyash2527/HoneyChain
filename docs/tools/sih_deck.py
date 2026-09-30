@@ -12,6 +12,7 @@ from pptx.oxml.ns import qn
 from lxml import etree
 
 TEMPLATE, SHOTS, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
+ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets')  # committed QR images
 TEAM = os.environ.get('TEAM_NAME', 'CodeVerse')
 TEAM_ID = os.environ.get('TEAM_ID', '133847')
 
@@ -78,8 +79,8 @@ def label_shape(shape, text, size=11, bold=True, color=WHITE, align=PP_ALIGN.CEN
     par = tf.paragraphs[0]; par.alignment = align
     add_runs(par, [text], size, color, bold)
 
-def pic(slide, name, x, y, w=None, h=None, border=True):
-    p = slide.shapes.add_picture(os.path.join(SHOTS, name), Inches(x), Inches(y), Inches(w) if w else None, Inches(h) if h else None)
+def pic(slide, name, x, y, w=None, h=None, border=True, folder=None):
+    p = slide.shapes.add_picture(os.path.join(folder or SHOTS, name), Inches(x), Inches(y), Inches(w) if w else None, Inches(h) if h else None)
     if border: p.line.color.rgb = LINE; p.line.width = Pt(1)
     return p
 
@@ -386,11 +387,9 @@ tb(s, 0.35, 5.88, 7.5, 1.02, [
 ], fill=LIGHT, margin=0.08)
 rect(s, 8.05, 5.62, 4.9, 1.3, fill=None, line=LINE)
 tb(s, 8.1, 5.64, 4.8, 0.24, [{'text': 'TRY THE PROTOTYPE', 'size': 10, 'bold': True, 'color': NAVY, 'align': PP_ALIGN.CENTER}])
-pic(s, 'qr-demo.png', 8.35, 5.9, w=0.76, border=False); pic(s, 'qr-repo.png', 9.95, 5.9, w=0.76, border=False); pic(s, 'qr-verify.png', 11.55, 5.9, w=0.76, border=False)
-tb(s, 8.05, 6.7, 1.6, 0.22, [{'text': 'Live demo', 'size': 8.5, 'bold': True, 'align': PP_ALIGN.CENTER}])
-tb(s, 9.65, 6.7, 1.6, 0.22, [{'text': 'Source code', 'size': 8.5, 'bold': True, 'align': PP_ALIGN.CENTER}])
-tb(s, 11.25, 6.7, 1.6, 0.22, [{'text': 'Verify sample', 'size': 8.5, 'bold': True, 'align': PP_ALIGN.CENTER}])
-tb(s, 1.35, 7.0, 0.1, 0.1, [{'text': '', 'size': 1}])
+pic(s, 'qr-live.png', 8.3, 5.88, w=0.78, border=False, folder=ASSETS); pic(s, 'qr-source.png', 9.92, 5.88, w=0.78, border=False, folder=ASSETS); pic(s, 'qr-verify.png', 11.54, 5.88, w=0.78, border=False, folder=ASSETS)
+for i, (t, u) in enumerate([('Live app', 'honey-chain-rust.vercel.app'), ('Source code', 'github.com/Suyash2527/HoneyChain'), ('Verify a sample batch', 'live app, batch HC-2026-0001')]):
+    tb(s, 8.08 + i * 1.62, 6.62, 1.62, 0.32, [{'text': t, 'size': 8.5, 'bold': True, 'align': PP_ALIGN.CENTER, 'after': 0}, {'text': u, 'size': 6.5, 'color': BLUE, 'align': PP_ALIGN.CENTER}], margin=0.0)
 
 # drop the "Important instructions" slide
 sldIdLst = prs.slides._sldIdLst
