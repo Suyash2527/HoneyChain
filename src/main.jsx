@@ -5,6 +5,7 @@ import { StoreProvider } from './lib/store.jsx'
 import { SettingsProvider } from './lib/settings.jsx'
 import './styles.css'
 import './motion.css'
+import './receipt.css'
 
 createRoot(document.getElementById('root')).render(
   <SettingsProvider>

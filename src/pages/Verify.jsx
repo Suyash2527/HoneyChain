@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { useSettings } from '../lib/settings.jsx'
-import { traceBatch, PURITY_LIMITS, shortHash } from '../lib/chain'
+import { traceBatch, PURITY_LIMITS, PURITY_FLAGS, shortHash } from '../lib/chain'
 import { Reveal, useInView, motionOn } from '../lib/motion.jsx'
 import { Bil, CopyHash, fmtDate, fmtTime, HexMark, Icon, PageHead, QR, Seal, VERDICT_ICON, verifyUrl, useToast } from '../lib/ui.jsx'
 
@@ -162,6 +162,16 @@ function Result({ tr }) {
                   <Reveal key={k} delay={i * 70} variant="left" className={'labrow' + (bad ? ' out' : '')}>
                     <span><b>{l.label}</b><small>Limit {l.max !== undefined ? '≤ ' + l.max : '≥ ' + l.min} {l.unit}</small></span>
                     <span className="row" style={{ gap: 10 }}><span className="num">{v}{l.unit === '%' ? '%' : ' ' + l.unit}</span>
+                      <span className={'pill ' + (bad ? 'bad' : 'ok')}><Icon n={bad ? 'close' : 'check'} size="sm" />{bad ? t('v.fail') : t('v.pass')}</span></span>
+                  </Reveal>
+                )
+              })}
+              {Object.entries(PURITY_FLAGS).filter(([k]) => lab.tests[k]).map(([k, f], i) => {
+                const bad = lab.tests[k] === f.bad
+                return (
+                  <Reveal key={k} delay={(i + 6) * 70} variant="left" className={'labrow' + (bad ? ' out' : '')}>
+                    <span><b>{f.label}</b><small>Expected {f.good}</small></span>
+                    <span className="row" style={{ gap: 10 }}><span className="num">{lab.tests[k]}</span>
                       <span className={'pill ' + (bad ? 'bad' : 'ok')}><Icon n={bad ? 'close' : 'check'} size="sm" />{bad ? t('v.fail') : t('v.pass')}</span></span>
                   </Reveal>
                 )

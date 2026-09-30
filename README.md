@@ -15,6 +15,7 @@ Consumers scan a QR code on a jar and see where the honey came from, whether it 
 | **Lab** | Enter purity results (moisture, HMF, sucrose, reducing sugars, ash, C4 sugar). Pass/fail is computed from limits and sealed on the ledger; failures cannot be edited. |
 | **Supply chain** | Log custody handovers and retail packing. |
 | **Smart hive** | Live simulated telemetry (weight, brood temperature, humidity, colony sound, CO2, activity). AI diagnoses varroa, foulbrood, queenless, pre-swarm and starvation with advice, forecasts 30-day yield, and anchors a Merkle root of telemetry on the ledger. |
+| **Ledger receipts** | Every ledger write (harvest, lab result, handover, packing, hive registration, telemetry anchor) prints a receipt from an animated thermal-printer: stepped paper feed, torn edge, barcode + QR, block hash and validator signature. Print / save as PDF, copy, share on WhatsApp, or reprint any block from the Ledger page. |
 | **Ledger explorer** | Block list with a live integrity check and a **tamper demo**: forge an old record and watch the chain break at that block. |
 | **Rollout plan** | Phased KVIC cluster deployment framework, unit economics, risks. |
 | **Accessibility & options** | English / हिन्दी, light / dark / auto, three text sizes, Simple vs Expert detail, role-based navigation, guided tour. |

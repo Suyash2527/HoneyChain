@@ -30,6 +30,13 @@ export const PURITY_LIMITS = {
   c4Sugar: { max: 7, unit: '%', label: 'C4 sugar (adulteration marker)' },
 }
 
+// Qualitative markers. Engineered sugar syrups can pass C4/HMF yet fail NMR (CSE, 2020), so labs
+// should also anchor NMR-profile and rice-syrup-marker (SMR / 2-AFGP) results when available.
+export const PURITY_FLAGS = {
+  nmr: { label: 'NMR profile', good: 'Consistent', bad: 'Anomaly' },
+  smr: { label: 'Rice-syrup marker (SMR)', good: 'Absent', bad: 'Detected' },
+}
+
 export async function sha256(text) {
   const buf = new TextEncoder().encode(text)
   const digest = await crypto.subtle.digest('SHA-256', buf)
@@ -90,6 +97,9 @@ export function evaluatePurity(tests) {
     if (Number.isNaN(v)) continue
     if (limit.max !== undefined && v > limit.max) failures.push(`${limit.label} ${v}${limit.unit} exceeds ${limit.max}${limit.unit}`)
     if (limit.min !== undefined && v < limit.min) failures.push(`${limit.label} ${v}${limit.unit} below ${limit.min}${limit.unit}`)
+  }
+  for (const [key, f] of Object.entries(PURITY_FLAGS)) {
+    if (tests[key] === f.bad) failures.push(`${f.label}: ${f.bad}`)
   }
   return { pass: failures.length === 0, failures }
 }

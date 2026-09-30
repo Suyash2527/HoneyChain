@@ -12,6 +12,7 @@ import Verify from './pages/Verify.jsx'
 import Explorer from './pages/Explorer.jsx'
 import Deploy from './pages/Deploy.jsx'
 import Tour from './Tour.jsx'
+import Receipt from './Receipt.jsx'
 import { ScrollProgress, useRipple, useSmoothScroll } from './lib/motion.jsx'
 
 // [path, i18n key, icon, group, roles that see it as suggested, page]
@@ -142,6 +143,7 @@ export default function App() {
       </nav>
 
       <SettingsDrawer />
+      <Receipt />
       {tour && <Tour onClose={() => setTour(false)} />}
     </div>
   )

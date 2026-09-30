@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { BLOCK_TYPES as T, evaluatePurity, makeBlock, verifyChain, computeMerkleRoot } from './chain'
 import { generateReadings } from './sensors'
+import { showReceipt } from './receipt'
 
 const STORAGE_KEY = 'honeychain.v1'
 const DAY = 24 * 3600 * 1000
@@ -35,7 +36,7 @@ export async function buildSeedChain() {
 
   // Batch 1: fully verified premium mustard honey
   await add(T.HARVEST_LOGGED, { batchId: 'HC-2026-0001', hiveIds: ['HV-003', 'HV-004'], quantityKg: 62, floral: 'Mustard', harvestedBy: 'Sunita Devi', method: 'Cold extraction (KVIC toolkit)' }, 40)
-  const t1 = { moisture: 17.8, hmf: 14, sucrose: 1.9, reducingSugar: 71, ash: 0.18, c4Sugar: 1.1 }
+  const t1 = { moisture: 17.8, hmf: 14, sucrose: 1.9, reducingSugar: 71, ash: 0.18, c4Sugar: 1.1, nmr: 'Consistent', smr: 'Absent' }
   await add(T.LAB_CERTIFIED, { batchId: 'HC-2026-0001', lab: 'NABL Lab - KVIC Jaipur', tests: t1, ...evaluatePurity(t1), reportHash: 'a9c2…seed' }, 36)
   await add(T.CUSTODY_TRANSFER, { batchId: 'HC-2026-0001', from: 'Sunita Devi', to: 'KVIC Processing Unit - Jaipur', note: 'Filtered and bottled' }, 33)
   await add(T.RETAIL_PACKED, { batchId: 'HC-2026-0001', bottles: 124, sizeGrams: 500, retailer: 'Khadi Gramodyog Bhawan, Jaipur' }, 30)
@@ -43,14 +44,14 @@ export async function buildSeedChain() {
 
   // Batch 2: eucalyptus, certified
   await add(T.HARVEST_LOGGED, { batchId: 'HC-2026-0002', hiveIds: ['HV-001', 'HV-002'], quantityKg: 48, floral: 'Eucalyptus', harvestedBy: 'Ramesh Patil', method: 'Cold extraction (KVIC toolkit)' }, 25)
-  const t2 = { moisture: 18.9, hmf: 22, sucrose: 2.6, reducingSugar: 69, ash: 0.22, c4Sugar: 2.3 }
+  const t2 = { moisture: 18.9, hmf: 22, sucrose: 2.6, reducingSugar: 69, ash: 0.22, c4Sugar: 2.3, nmr: 'Consistent', smr: 'Absent' }
   await add(T.LAB_CERTIFIED, { batchId: 'HC-2026-0002', lab: 'NABL Lab - KVIC Nagpur', tests: t2, ...evaluatePurity(t2), reportHash: 'b7d1…seed' }, 21)
   await add(T.SENSOR_ATTESTATION, { hiveId: 'HV-001', windowDays: 14, samples: 336, merkleRoot: await computeMerkleRoot(['seed-d', 'seed-e']) }, 22)
   await add(T.CUSTODY_TRANSFER, { batchId: 'HC-2026-0002', from: 'Ramesh Patil', to: 'Nagpur Distributor Co-op', note: 'Bulk 48 kg drums' }, 18)
 
   // Batch 3: counterfeit / adulterated - lab fails
   await add(T.HARVEST_LOGGED, { batchId: 'HC-2026-0003', hiveIds: ['HV-005'], quantityKg: 95, floral: 'Wildflower', harvestedBy: 'Lalita Meena', method: 'Unknown' }, 15)
-  const t3 = { moisture: 24.6, hmf: 112, sucrose: 9.4, reducingSugar: 58, ash: 0.09, c4Sugar: 21 }
+  const t3 = { moisture: 24.6, hmf: 112, sucrose: 9.4, reducingSugar: 58, ash: 0.09, c4Sugar: 21, nmr: 'Anomaly', smr: 'Detected' }
   await add(T.LAB_CERTIFIED, { batchId: 'HC-2026-0003', lab: 'NABL Lab - KVIC Jaipur', tests: t3, ...evaluatePurity(t3), reportHash: 'c3e8…seed' }, 12)
 
   // Batch 4: fresh harvest awaiting lab
@@ -93,6 +94,7 @@ export function StoreProvider({ children }) {
     const block = await makeBlock(chainRef.current[chainRef.current.length - 1] || null, type, payload)
     chainRef.current = [...chainRef.current, block]
     setChain(chainRef.current)
+    showReceipt(block) // print a receipt for every ledger write
     return block
   }, [])
 
