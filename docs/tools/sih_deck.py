@@ -388,7 +388,7 @@ tb(s, 0.35, 5.88, 7.5, 1.02, [
 rect(s, 8.05, 5.62, 4.9, 1.3, fill=None, line=LINE)
 tb(s, 8.1, 5.64, 4.8, 0.24, [{'text': 'TRY THE PROTOTYPE', 'size': 10, 'bold': True, 'color': NAVY, 'align': PP_ALIGN.CENTER}])
 pic(s, 'qr-live.png', 8.3, 5.88, w=0.78, border=False, folder=ASSETS); pic(s, 'qr-source.png', 9.92, 5.88, w=0.78, border=False, folder=ASSETS); pic(s, 'qr-verify.png', 11.54, 5.88, w=0.78, border=False, folder=ASSETS)
-for i, (t, u) in enumerate([('Live app', 'honey-chain-rust.vercel.app'), ('Source code', 'github.com/Suyash2527/HoneyChain'), ('Verify a sample batch', 'live app, batch HC-2026-0001')]):
+for i, (t, u) in enumerate([('Live app', 'honey-chain-rust.vercel.app'), ('Source code', 'github.com/Suyash2527/HoneyChain'), ('Verify a sample batch', 'live app, batch HC-2026-0008')]):
     tb(s, 8.08 + i * 1.62, 6.62, 1.62, 0.32, [{'text': t, 'size': 8.5, 'bold': True, 'align': PP_ALIGN.CENTER, 'after': 0}, {'text': u, 'size': 6.5, 'color': BLUE, 'align': PP_ALIGN.CENTER}], margin=0.0)
 
 # drop the "Important instructions" slide
