@@ -135,7 +135,7 @@ function Result({ tr }) {
 
         {/* Origin dossier */}
         <Reveal as="section" className="card" delay={0}>
-          <div className="head"><div><h3><Icon n="nest_eco_area" />{t('v.origin')}</h3><Bil k="v.origin" /></div>{hive0 && <span className="hash">{hive0.cluster}</span>}</div>
+          <div className="head"><div><h3><Icon n="eco" />{t('v.origin')}</h3><Bil k="v.origin" /></div>{hive0 && <span className="hash">{hive0.cluster}</span>}</div>
           <dl className="spec" style={{ margin: '14px 0 0' }}>
             <div><dt>{t('v.beekeeper')}</dt><b>{h.harvestedBy}</b></div>
             {hive0 && <div><dt>{t('v.place')}</dt><b>{hive0.village}, {hive0.district}, {hive0.state}</b></div>}

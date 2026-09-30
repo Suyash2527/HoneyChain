@@ -113,3 +113,69 @@ body.scrolled .top { padding-top: 6px; padding-bottom: 6px; border-bottom-color:
 [data-motion="off"] .marquee-track { animation: none; overflow-x: auto; } [data-motion="off"] .timeline::before { transform: none; transition: none; }
 [data-motion="off"] .story-step { opacity: 1; }
 .masthead .r > .floaters { position: absolute; }
+
+/* =====================================================================
+   PREMIUM SCROLL LAYER
+   Native scroll-driven animations (Chrome/Edge 115+, Safari 26+): effects are
+   scrubbed by scroll position on the compositor - no thresholds, no pop-in,
+   no JS per frame. Browsers without support keep the IntersectionObserver fallback above.
+   ===================================================================== */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+.rv { will-change: auto; }
+.page-in { animation-duration: .4s; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* story rail + dots (all browsers) */
+.story-steps { position: relative; }
+.story-steps::before, .story-steps::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+.story-steps::before { background: var(--line); }
+.story-steps::after { background: linear-gradient(var(--gold-1), var(--gold-2), var(--gold-3)); transform-origin: top; transform: scaleY(0); }
+.story-step { position: relative; border-left: 0; padding-left: 30px; }
+.story-step::before { content: ''; position: absolute; left: -6px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--line-2); border: 3px solid var(--paper); transition: background .4s, transform .4s var(--ease); z-index: 1; }
+.story-step.on::before { background: var(--amber); transform: scale(1.35); }
+.story-stage { transition: border-color .5s; } .story-stage:hover { border-color: var(--gold-3); }
+
+@keyframes rvUp { from { opacity: 0; transform: translate3d(0, 64px, 0) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes rvLeft { from { opacity: 0; transform: translate3d(-56px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes rvRight { from { opacity: 0; transform: translate3d(56px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes rvScale { from { opacity: 0; transform: scale(.9) translate3d(0, 30px, 0); } to { opacity: 1; transform: none; } }
+@keyframes rvFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fillY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes heroOut { to { opacity: .15; transform: translate3d(0, -48px, 0) scale(.975); } }
+@keyframes parY { to { transform: translate3d(0, 150px, 0); } }
+@keyframes parYslow { to { transform: translate3d(0, 70px, 0) rotate(8deg); } }
+@keyframes sealIn { from { transform: scale(.86); opacity: .3; } to { transform: none; opacity: 1; } }
+@keyframes prog { to { transform: scaleX(1); } }
+
+@supports (animation-timeline: view()) {
+  [data-motion="on"] .rv { opacity: 1; transform: none; transition: none; animation: rvUp linear both; animation-timeline: view(); animation-range: entry calc(var(--i, 0) * 3%) cover calc(24% + var(--i, 0) * 3%); }
+  [data-motion="on"] .rv-left { animation-name: rvLeft; } [data-motion="on"] .rv-right { animation-name: rvRight; }
+  [data-motion="on"] .rv-scale { animation-name: rvScale; } [data-motion="on"] .rv-fade { animation-name: rvFade; }
+
+  /* hero: content drifts away and fades as you leave it; hexagons and watermark parallax at different depths */
+  [data-motion="on"] .masthead .l { animation: heroOut linear both; animation-timeline: scroll(root); animation-range: 0 460px; }
+  [data-motion="on"] .masthead .r .floaters { animation: parY linear both; animation-timeline: scroll(root); animation-range: 0 700px; }
+  [data-motion="on"] .masthead .r .wm { animation: parYslow linear both; animation-timeline: scroll(root); animation-range: 0 700px; }
+
+  /* progress lines are scrubbed, not timed */
+  [data-motion="on"] .story-steps::after { animation: fillY linear both; animation-timeline: view(); animation-range: entry 45% exit 55%; }
+  [data-motion="on"] .timeline::before { transition: none; animation: fillY linear both; animation-timeline: view(); animation-range: entry 25% cover 75%; transform: scaleY(0); }
+  [data-motion="on"] .timeline.grow::before { transform: scaleY(0); }
+  [data-motion="on"] .progress { transform: scaleX(0); animation: prog linear both; animation-timeline: scroll(root); }
+
+  /* verdict seal eases in with the section */
+  [data-motion="on"] .hero-v .seal { animation: sealIn linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
+}
+
+[data-motion="off"] .story-steps::after { transform: scaleY(1); }
+[data-motion="off"] .story-step::before { transition: none; }
+
+/* --- polish: numerals, gradient headline through animated words, watermark --- */
+.stat-b, .stats-row b, .seal .c b, .steps .n, h1, h2, .metric b, .hero-v h2 { font-variant-numeric: lining-nums; font-feature-settings: 'lnum' 1; }
+.masthead h1 em { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: inherit; }
+.masthead h1 em .w { background: linear-gradient(110deg, var(--gold-1), var(--gold-2) 50%, var(--gold-3)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .04em; }
+.story-stage::before { top: auto; bottom: -18px; right: 12px; opacity: .1; }
+.bil { font-size: .8rem; }
+.roles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }

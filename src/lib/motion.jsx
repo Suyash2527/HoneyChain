@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Lenis from 'lenis'
 
 // Motion helpers. Everything here degrades to "instantly visible" when
 // <html data-motion="off"> (user setting or OS reduce-motion) or IntersectionObserver is missing.
@@ -28,7 +29,7 @@ export function useInView({ threshold = 0.12, rootMargin = '0px 0px -8% 0px', on
 // Fade + slide in when scrolled into view. variant: up | left | right | scale | fade
 export function Reveal({ as: Tag = 'div', variant = 'up', delay = 0, className = '', style, children, ...rest }) {
   const [ref, inView] = useInView()
-  return <Tag ref={ref} className={`rv rv-${variant}${inView ? ' in' : ''} ${className}`} style={{ '--d': `${delay}ms`, ...style }} {...rest}>{children}</Tag>
+  return <Tag ref={ref} className={`rv rv-${variant}${inView ? ' in' : ''} ${className}`} style={{ '--d': `${delay}ms`, '--i': Math.round(delay / 70), ...style }} {...rest}>{children}</Tag>
 }
 
 export function CountUp({ to, duration = 1100, decimals = 0, className }) {
@@ -98,4 +99,17 @@ export function useRipple() {
     document.addEventListener('pointerdown', on)
     return () => document.removeEventListener('pointerdown', on)
   }, [])
+}
+
+// Inertia (smooth) wheel scrolling. Off when animations are off / reduced motion.
+export function useSmoothScroll(motionSetting) {
+  useEffect(() => {
+    if (!motionOn()) return
+    const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.95, smoothWheel: true, syncTouch: false })
+    window.__lenis = lenis
+    let raf = 0
+    const loop = (t) => { lenis.raf(t); raf = requestAnimationFrame(loop) }
+    raf = requestAnimationFrame(loop)
+    return () => { cancelAnimationFrame(raf); lenis.destroy(); delete window.__lenis }
+  }, [motionSetting])
 }

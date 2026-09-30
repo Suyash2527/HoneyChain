@@ -78,7 +78,7 @@ function Story() {
   return (
     <div className="story">
       <div className="story-sticky"><div className="story-stage" data-step={String(active).padStart(2, '0')}><StoryVisual key={active} step={active} /></div></div>
-      <div>
+      <div className="story-steps">
         {[1, 2, 3, 4, 5, 6].map((n) => (
           <div key={n} ref={(el) => (refs.current[n] = el)} data-n={n} className={'story-step' + (active === n ? ' on' : '')}>
             <span className="n">STEP {String(n).padStart(2, '0')}</span>
@@ -146,7 +146,7 @@ export default function Home() {
           <div><span className="kicker">Start here</span><h2>{t('home.iam')}</h2><span className="bil">{tb('home.iam')}</span></div>
           <p className="muted" style={{ margin: 0 }}>{t('home.iam.sub')}</p>
         </div></Reveal>
-        <div className="grid g3">
+        <div className="grid roles">
           {Object.keys(ROLE_HOME).map((r, i) => (
             <Reveal key={r} delay={i * 80} variant="scale">
               <a className={'role' + (role === r ? ' on' : '')} href={'#/' + ROLE_HOME[r]} onClick={() => set({ role: r })}>

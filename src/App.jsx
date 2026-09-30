@@ -12,7 +12,7 @@ import Verify from './pages/Verify.jsx'
 import Explorer from './pages/Explorer.jsx'
 import Deploy from './pages/Deploy.jsx'
 import Tour from './Tour.jsx'
-import { ScrollProgress, useRipple } from './lib/motion.jsx'
+import { ScrollProgress, useRipple, useSmoothScroll } from './lib/motion.jsx'
 
 // [path, i18n key, icon, group, roles that see it as suggested, page]
 export const ROUTES = [
@@ -33,7 +33,7 @@ function useHashRoute() {
   }
   const [r, setR] = useState(parse)
   useEffect(() => {
-    const on = () => { setR(parse()); window.scrollTo(0, 0) }
+    const on = () => { setR(parse()); window.__lenis ? window.__lenis.scrollTo(0, { immediate: true }) : window.scrollTo(0, 0) }
     window.addEventListener('hashchange', on)
     return () => window.removeEventListener('hashchange', on)
   }, [])
@@ -43,11 +43,11 @@ function useHashRoute() {
 export const Emblem = ({ size = 40 }) => (
   <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
     <polygon points="24,2 44,14 44,34 24,46 4,34 4,14" fill="var(--paper)" stroke="var(--primary)" strokeWidth="2.5" />
-    <polygon points="24,7 39,16 39,32 24,41 9,32 9,16" fill="none" stroke="#E9A23B" strokeWidth="1.5" strokeDasharray="3 2" />
+    <polygon points="24,7 39,16 39,32 24,41 9,32 9,16" fill="none" stroke="var(--amber)" strokeWidth="1.5" strokeDasharray="3 2" />
     <circle cx="24" cy="24" r="5" fill="var(--primary)" />
     <path d="M19 24 C19 19, 29 19, 29 24 C29 29, 19 29, 19 24 Z" fill="none" stroke="var(--primary)" strokeWidth="1.5" />
-    <path d="M14 19 L19 22 M29 22 L34 19" stroke="#E9A23B" strokeWidth="2" strokeLinecap="round" />
-    <circle cx="24" cy="14" r="2" fill="#E9A23B" />
+    <path d="M14 19 L19 22 M29 22 L34 19" stroke="var(--amber)" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="24" cy="14" r="2" fill="var(--amber)" />
   </svg>
 )
 
@@ -87,6 +87,8 @@ export default function App() {
   const [q, setQ] = useState('')
   const route = ROUTES.find((r) => r[0] === path) || ROUTES[0]
   useRipple()
+  useSmoothScroll(s.motion)
+  useEffect(() => { const l = window.__lenis; if (l) (s.open || menu ? l.stop() : l.start()) }, [s.open, menu, s.motion])
   useEffect(() => {
     const on = (e) => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) { e.preventDefault(); document.getElementById('topsearch')?.focus() } }
     addEventListener('keydown', on); return () => removeEventListener('keydown', on)

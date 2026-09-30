@@ -5,7 +5,7 @@ const mq = () => window.matchMedia('(prefers-color-scheme: dark)')
 
 export const ROLE_HOME = { consumer: 'verify', beekeeper: 'hives', lab: 'lab', processor: 'supply', officer: 'ledger' }
 const KEY = 'honeychain.settings.v2'
-const DEFAULTS = { lang: 'en', theme: 'auto', size: 1, mode: 'simple', role: 'consumer', motion: 'auto' }
+const DEFAULTS = { lang: 'en', theme: 'dark', size: 1, mode: 'simple', role: 'consumer', motion: 'auto' }
 const Ctx = createContext(null)
 export const useSettings = () => useContext(Ctx)
 
