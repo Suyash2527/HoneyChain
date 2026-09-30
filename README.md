@@ -59,6 +59,19 @@ npm run build      # production build in dist/
 
 Try `#/verify/HC-2026-0001` (genuine), `#/verify/HC-2026-0003` (fake, failed lab), `#/verify/HC-2026-0004` (awaiting lab). The 🎬 button in the top bar plays a guided tour.
 
+## Deploy
+
+The build is a static site (`dist/`) with relative asset paths, so it runs on a root domain, a sub-path, or any file server. HTTPS is required for the camera QR scanner and the service worker (every host below provides it).
+
+| Target | How |
+|---|---|
+| **GitHub Pages** | Repo **Settings → Pages → Source: GitHub Actions**, then push to `main` (workflow: `.github/workflows/deploy.yml`) → https://suyash2527.github.io/HoneyChain/ |
+| **Vercel** | `npx vercel deploy --prod` (config in `vercel.json`). Turn off *Deployment Protection* if the site should be public. |
+| **Netlify** | Connect the repo; `netlify.toml` sets build, headers and cache. |
+| **Docker / any server** | `docker build -t honeychain . && docker run -p 8080:80 honeychain` (nginx, `nginx.conf`). |
+
+Set `SITE_URL=https://your-domain` at build time so social-preview images use absolute URLs. The app is an installable, offline-first PWA (`public/manifest.webmanifest`, `public/sw.js`).
+
 ## Project structure
 
 ```
