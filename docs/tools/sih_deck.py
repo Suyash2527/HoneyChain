@@ -12,8 +12,8 @@ from pptx.oxml.ns import qn
 from lxml import etree
 
 TEMPLATE, SHOTS, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
-TEAM = os.environ.get('TEAM_NAME', 'Your Team Name')
-TEAM_ID = os.environ.get('TEAM_ID', '<Team ID>')
+TEAM = os.environ.get('TEAM_NAME', 'CodeVerse')
+TEAM_ID = os.environ.get('TEAM_ID', '133847')
 
 NAVY, BLUE = RGBColor(0x1F, 0x49, 0x7D), RGBColor(0x00, 0x70, 0xC0)
 ORANGE, GREEN, RED = RGBColor(0xE9, 0x8B, 0x1D), RGBColor(0x2E, 0x8B, 0x57), RGBColor(0xB3, 0x37, 0x2F)
@@ -219,8 +219,23 @@ table(s, 0.35, 1.62, 8.3, [1.15, 4.35, 2.8], [
     ['Data', 'On-chain: hashes only. Off-chain: time-series store; IPFS for lab PDFs', 'Privacy, low cost'],
     ['DevOps / security', 'GitHub Actions CI; Pages / Vercel / Docker + nginx; HTTPS; role-based keys (Ed25519 planned)', 'Repeatable, secure deployment'],
 ], size=9, head_size=9.5, row_h=0.36)
-pic(s, 'desk-hive-detail.png', 8.85, 1.3, w=4.1)
-tb(s, 8.85, 3.85, 4.1, 0.6, [{'runs': [('Working prototype – hive dashboard: ', {'bold': True, 'color': NAVY}), 'AI flags "Pre-swarm 98%" with advice; live sensor tiles and 30-day yield forecast.'], 'size': 9, 'color': GREY}])
+def tag(label, color):
+    return (label + ' ', {'bold': True, 'color': color})
+
+hd = rect(s, 8.85, 1.28, 4.1, 0.3, fill=NAVY); label_shape(hd, 'How we use AI (beyond the blockchain)', 10.5, True, WHITE, PP_ALIGN.LEFT)
+tb(s, 8.85, 1.58, 4.1, 1.42, [
+    {'runs': [tag('[Built]', GREEN), 'Hive-health model: sensor features → varroa, foulbrood, queenless, pre-swarm, starvation (24/24 on simulated tests)'], 'size': 8.6, 'hang': 0.0, 'after': 2},
+    {'runs': [tag('[Built]', GREEN), '30-day yield forecast (80% range) + fraud flag when claimed kg per hive exceeds what hive data supports'], 'size': 8.6, 'after': 2},
+    {'runs': [tag('[Plan]', ORANGE), 'CNN on hive audio via TFLite Micro, trained on open datasets (refs 8, 9); advice shown with confidence'], 'size': 8.6, 'after': 2},
+    {'runs': [tag('[Plan]', ORANGE), 'Comb-photo disease check on the phone; Hindi voice entry and advice for low-literacy users'], 'size': 8.6, 'after': 0},
+], fill=LIGHT, margin=0.06)
+hd = rect(s, 8.85, 3.03, 4.1, 0.3, fill=BLUE); label_shape(hd, 'How we use Cloud', 10.5, True, WHITE, PP_ALIGN.LEFT)
+tb(s, 8.85, 3.33, 4.1, 1.14, [
+    {'runs': [tag('[Today]', GREEN), 'PWA served from a CDN (GitHub Pages / Vercel); CI/CD with GitHub Actions'], 'size': 8.6, 'after': 2},
+    {'runs': [tag('[Plan]', ORANGE), 'LoRaWAN → MQTT broker → time-series DB; Merkle root anchored on-chain'], 'size': 8.6, 'after': 2},
+    {'runs': [tag('[Plan]', ORANGE), 'Validator nodes + indexer as containers on MeitY-empanelled / GI Cloud; KMS/HSM keys'], 'size': 8.6, 'after': 2},
+    {'runs': [tag('[Plan]', ORANGE), 'Cloud GPU training, OTA model updates, drift monitoring; object storage + IPFS; retailer API; SMS / WhatsApp alerts'], 'size': 8.6, 'after': 0},
+], fill=LIGHT, margin=0.06)
 heading(s, 0.35, 4.5, 12.6, 'Methodology and process for implementation (Flow Charts/Images/ working prototype)', size=13)
 steps = [
     ('1 Register', ['Hive ID: owner, GPS, cluster, flora', 'Block HIVE_REGISTERED']),
