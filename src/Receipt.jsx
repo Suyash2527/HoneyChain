@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import { buildReceipt, receiptText, printerSound, soundOn, setSound } from './lib/receipt.js'
+import { buildReceipt, receiptText, printerSound, tearSound, soundOn, setSound } from './lib/receipt.js'
 import { verifyUrl, Icon } from './lib/ui.jsx'
 import { motionOn } from './lib/motion.jsx'
 
@@ -31,7 +31,7 @@ function Barcode({ hash }) {
 
 export default function Receipt() {
   const [block, setBlock] = useState(null)
-  const [phase, setPhase] = useState('printing') // printing | done | tearing
+  const [phase, setPhase] = useState('printing') // printing | done | pull | torn
   const [qr, setQr] = useState('')
   const [sound, setSoundState] = useState(soundOn())
   const closeRef = useRef(null)
@@ -57,7 +57,10 @@ export default function Receipt() {
 
   const close = () => {
     if (!motionOn()) return setBlock(null)
-    setPhase('tearing'); setTimeout(() => setBlock(null), 600)
+    // 1) pull: paper stretches against the tear bar  2) rip: jagged edge, sound, stub stays  3) the strip flutters away
+    setPhase('pull'); setTimeout(tearSound, 130)
+    setTimeout(() => setPhase('torn'), 340)
+    setTimeout(() => setBlock(null), 1900)
   }
   useEffect(() => {
     if (!block) return
@@ -72,7 +75,7 @@ export default function Receipt() {
   const toggleSound = () => { setSound(!sound); setSoundState(!sound) }
 
   return (
-    <div className="rc-scrim" onClick={(e) => e.target === e.currentTarget && close()}>
+    <div className={'rc-scrim' + (phase === 'pull' || phase === 'torn' ? ' tearing' : '')} onClick={(e) => e.target === e.currentTarget && close()}>
       <div className="rc-wrap" role="dialog" aria-modal="true" aria-label={`Receipt ${r.no}`}>
         <div className={'printer' + (printing ? ' on' : '')}>
           <div className="printer-top">
@@ -82,8 +85,9 @@ export default function Receipt() {
           <div className="slot" />
         </div>
 
-        <div className={'feed' + (phase === 'done' ? ' done' : '')}>
-          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'tearing' ? ' tearing' : '')} aria-live="polite">
+        <div className={'feed' + (phase === 'done' ? ' done' : '') + (phase === 'torn' || phase === 'pull' ? ' ' + phase : '')}>
+          {phase === 'torn' && <div className="stub" aria-hidden="true" />}
+          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'pull' ? ' pull' : '') + (phase === 'torn' ? ' torn' : '')} aria-live="polite">
             <header className="rc-head">
               <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,2 44,14 44,34 24,46 4,34 4,14" fill="none" stroke="#1b1a17" strokeWidth="2.5" /><circle cx="24" cy="24" r="5" fill="#1b1a17" /></svg>
               <b>HONEY CHAIN</b>

@@ -5,13 +5,13 @@
 
 /* printer */
 .printer { width: 100%; position: relative; z-index: 3; }
-.printer-top { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px 16px 6px 6px; background: linear-gradient(180deg, #2b2620, #15120e); border: 1px solid #4a4030; color: var(--gold-1); font-family: var(--mono); font-size: .66rem; letter-spacing: .16em; }
+.printer-top { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px 16px 6px 6px; background: linear-gradient(180deg, #262626, #0a0a0a); border: 1px solid #3a3a3a; color: var(--gold-1); font-family: var(--mono); font-size: .66rem; letter-spacing: .16em; }
 .printer-top .plabel { flex: 1; }
-.printer .led { width: 10px; height: 10px; border-radius: 50%; background: #3a3327; box-shadow: inset 0 0 0 1px #000; }
+.printer .led { width: 10px; height: 10px; border-radius: 50%; background: #333; box-shadow: inset 0 0 0 1px #000; }
 .printer.on .led { background: #6cc49a; box-shadow: 0 0 10px #6cc49a; animation: ledBlink .32s steps(2) infinite; }
 @keyframes ledBlink { 50% { opacity: .25; } }
-.pbtn { border: 1px solid #4a4030; background: #1e1a14; color: var(--gold-1); border-radius: 8px; width: 30px; height: 26px; display: grid; place-items: center; cursor: pointer; padding: 0; }
-.slot { height: 9px; margin: 0 14px; background: #050403; border-radius: 0 0 6px 6px; box-shadow: 0 6px 10px rgba(0, 0, 0, .55), inset 0 -2px 0 #000; border: 1px solid #3a3327; border-top: 0; }
+.pbtn { border: 1px solid #3a3a3a; background: #151515; color: var(--gold-1); border-radius: 8px; width: 30px; height: 26px; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.slot { height: 9px; margin: 0 14px; background: #050403; border-radius: 0 0 6px 6px; box-shadow: 0 6px 10px rgba(0, 0, 0, .55), inset 0 -2px 0 #000; border: 1px solid #2e2e2e; border-top: 0; }
 .printer.on { animation: buzz .08s steps(2) infinite; }
 @keyframes buzz { 50% { transform: translateX(.8px); } }
 
@@ -23,8 +23,29 @@
 .paper::after { /* torn zig-zag bottom edge */ content: ''; position: absolute; left: 0; right: 0; bottom: -8px; height: 8px; background: linear-gradient(135deg, var(--p) 50%, transparent 50%) 0 0 / 12px 8px, linear-gradient(225deg, var(--p) 50%, transparent 50%) 0 0 / 12px 8px; }
 .paper.printing { animation: feed 2.6s steps(26, end) both; }
 @keyframes feed { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-.paper.tearing { animation: tear .6s cubic-bezier(.55, 0, .9, .45) forwards; transform-origin: 20% 0; }
-@keyframes tear { 25% { transform: rotate(-2.4deg) translateY(6px); } 100% { transform: translateY(130%) rotate(7deg); opacity: 0; } }
+/* Tear: stretch -> jagged rip -> strip flutters off while a short stub stays in the printer */
+.rc-scrim.tearing { overflow: hidden; }
+.feed.pull, .feed.torn { overflow: visible; max-height: none; }
+.paper.pull { transform-origin: 82% 0; animation: pull .34s cubic-bezier(.4, 0, .9, .5) forwards; }
+@keyframes pull { 0% { transform: none; } 55% { transform: translateY(7px) rotate(.5deg) skewX(-.5deg); } 100% { transform: translateY(13px) rotate(1.1deg) skewX(-1deg) scaleY(1.008); } }
+.paper.torn {
+  transform-origin: 82% 0;
+  clip-path: polygon(0 9px, 4% 1px, 8% 10px, 12% 2px, 16% 9px, 20% 0, 24% 10px, 28% 3px, 32% 9px, 36% 1px, 40% 10px, 44% 2px, 48% 8px, 52% 0, 56% 10px, 60% 3px, 64% 9px, 68% 1px, 72% 10px, 76% 2px, 80% 9px, 84% 0, 88% 10px, 92% 3px, 96% 9px, 100% 2px, 100% calc(100% + 10px), 0 calc(100% + 10px));
+  animation: ripAway 1.5s cubic-bezier(.45, .05, .55, .95) forwards;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, .55));
+}
+@keyframes ripAway {
+  0% { transform: translateY(13px) rotate(1.1deg); }
+  9% { transform: translateY(-9px) rotate(-2.2deg); }        /* snaps loose */
+  22% { transform: translate(14px, 46px) rotate(4deg); }
+  40% { transform: translate(34px, 150px) rotate(-6deg); }   /* flutter */
+  58% { transform: translate(18px, 300px) rotate(9deg); }
+  76% { transform: translate(52px, 470px) rotate(-8deg); opacity: 1; }
+  100% { transform: translate(40px, 720px) rotate(15deg); opacity: 0; }
+}
+.stub { position: absolute; z-index: 4; top: 0; left: 50%; width: 300px; max-width: 92%; height: 26px; margin-left: -150px; background: #fbf8f0; animation: stubGo 1.5s ease-in forwards;
+  clip-path: polygon(0 0, 100% 0, 100% 15px, 96% 25px, 92% 14px, 88% 26px, 84% 15px, 80% 24px, 76% 13px, 72% 26px, 68% 15px, 64% 24px, 60% 14px, 56% 26px, 52% 13px, 48% 25px, 44% 15px, 40% 26px, 36% 14px, 32% 24px, 28% 13px, 24% 26px, 20% 15px, 16% 25px, 12% 14px, 8% 26px, 4% 15px, 0 24px); }
+@keyframes stubGo { 0%, 45% { transform: translateY(0); } 100% { transform: translateY(-110%); } }
 
 /* paper content */
 .rc-head { display: grid; justify-items: center; text-align: center; gap: 2px; }
@@ -50,7 +71,7 @@
 .rc-actions.wait { opacity: .55; }
 .rc-actions .btn.tertiary { color: #f3dc9b; }
 
-[data-motion="off"] .paper.printing, [data-motion="off"] .paper.tearing, [data-motion="off"] .printer.on, [data-motion="off"] .printer.on .led { animation: none !important; }
+[data-motion="off"] .paper.printing, [data-motion="off"] .paper.pull, [data-motion="off"] .paper.torn, [data-motion="off"] .stub, [data-motion="off"] .printer.on, [data-motion="off"] .printer.on .led { animation: none !important; }
 [data-motion="off"] .rc-scrim { animation: none; }
 
 @media print {

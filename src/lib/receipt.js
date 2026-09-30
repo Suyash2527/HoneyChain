@@ -96,3 +96,25 @@ export function printerSound(ms = 2400) {
     o.connect(g2); g2.connect(ctx.destination); o.start(t2); o.stop(t2 + 0.1)
   } catch { /* audio unavailable */ }
 }
+
+// Paper rip: a short, gritty noise burst whose pitch falls as the paper tears away.
+export function tearSound() {
+  if (!soundOn()) return
+  try {
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)()
+    if (ctx.state === 'suspended') ctx.resume()
+    const dur = 0.34
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
+    const d = buf.getChannelData(0)
+    for (let i = 0; i < d.length; i++) {
+      const env = Math.sin((i / d.length) * Math.PI) // swell and fade
+      const crackle = Math.random() < 0.18 ? 1 : 0.35   // uneven fibres snapping
+      d[i] = (Math.random() * 2 - 1) * env * crackle
+    }
+    const src = ctx.createBufferSource(); src.buffer = buf
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.9
+    bp.frequency.setValueAtTime(5200, ctx.currentTime); bp.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + dur)
+    const g = ctx.createGain(); g.gain.value = 0.42
+    src.connect(bp); bp.connect(g); g.connect(ctx.destination); src.start()
+  } catch { /* audio unavailable */ }
+}
