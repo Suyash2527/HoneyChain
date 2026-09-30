@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&amp;family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#023625",
+            "primary-container": "#1F4D3A",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#A1D1B8",
+            "primary-fixed": "#BCEED3",
+            "primary-fixed-dim": "#A1D1B8",
+            "secondary": "#845400",
+            "secondary-container": "#FFB54D",
+            "on-secondary": "#ffffff",
+            "on-secondary-container": "#4A2800",
+            "honey": "#E9A23B",
+            "honey-light": "#FFF3D6",
+            "surface": "#FAF6EC",
+            "surface-dim": "#ECE6D8",
+            "surface-bright": "#FDFBF7",
+            "surface-container-lowest": "#FFFFFF",
+            "surface-container-low": "#F5EFE1",
+            "surface-container": "#EFE8D8",
+            "surface-container-high": "#E7DFCE",
+            "surface-container-highest": "#DFD7C4",
+            "on-surface": "#1B1A17",
+            "on-surface-variant": "#57534E",
+            "outline": "#857F72",
+            "outline-variant": "#E2DAC5",
+            "error": "#BA1A1A",
+            "error-container": "#FFDAD6",
+            "on-error": "#FFFFFF",
+            "on-error-container": "#93000A",
+            "tertiary": "#00371C",
+            "tertiary-container": "#00502B",
+            "background": "#FAF6EC"
+          },
+          fontFamily: {
+            "display": ["\"Source Serif 4\"", "Georgia", "serif"],
+            "headline-lg": ["\"Source Serif 4\"", "Georgia", "serif"],
+            "headline-md": ["\"Source Serif 4\"", "Georgia", "serif"],
+            "headline-sm": ["\"Source Serif 4\"", "Georgia", "serif"],
+            "headline-lg-mobile": ["\"Source Serif 4\"", "Georgia", "serif"],
+            "body-lg": ["Noto Sans", "sans-serif"],
+            "body-md": ["Noto Sans", "sans-serif"],
+            "body-sm": ["Noto Sans", "sans-serif"],
+            "label-lg": ["Noto Sans", "sans-serif"],
+            "label-md": ["Noto Sans", "sans-serif"],
+            "label-bilingual": ["Noto Sans", "sans-serif"],
+            "code-sm": ["\"JetBrains Mono\"", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+        background-color: #FAF6EC;
+        color: #1B1A17;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    }
+    ::-webkit-scrollbar { display: none; }
+
+    /* Custom subtle keyframe animations */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(233, 162, 59, 0.45);
+      }
+      50% {
+        box-shadow: 0 0 0 9px rgba(233, 162, 59, 0);
+      }
+    }
+
+    @keyframes radarPing {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.9;
+      }
+      50% {
+        transform: scale(1.18);
+        opacity: 0.4;
+      }
+      100% {
+        transform: scale(0.95);
+        opacity: 0.9;
+      }
+    }
+
+    @keyframes amberShimmer {
+      0% {
+        background-position: -200% 0;
+      }
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    .shimmer-badge {
+      background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,214,140,0.22) 50%, rgba(255,255,255,0.06) 100%);
+      background-size: 200% 100%;
+      animation: amberShimmer 5s ease-in-out infinite;
+    }
+
+    .animate-fade-up {
+      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-1 { animation-delay: 0.08s; opacity: 0; }
+    .delay-2 { animation-delay: 0.16s; opacity: 0; }
+    .delay-3 { animation-delay: 0.24s; opacity: 0; }
+    .delay-4 { animation-delay: 0.32s; opacity: 0; }
+
+    .pulse-amber {
+      animation: pulseGlow 2.5s infinite;
+    }
+
+    .status-radar {
+      animation: radarPing 2.2s infinite ease-in-out;
+    }
+
+    /* Score meter drawing transition */
+    #scoreRingProgress {
+      transition: stroke-dashoffset 1.4s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;
+      stroke-dasharray: 314.15;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, #scoreRingProgress, .animate-fade-up, .shimmer-badge, .pulse-amber, .status-radar {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-honey/20">
+<!-- TOP SOVEREIGN BRAND BAR -->
+<header class="fixed top-0 w-full z-50 pt-safe bg-surface-bright/95 backdrop-blur-md border-b border-outline-variant/60 shadow-[0_1px_4px_rgba(27,26,23,0.04)]">
+<div class="px-4 py-2 flex flex-col gap-1.5">
+<!-- Upper Emblem Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<img alt="Honey Chain KVIC Emblem" class="h-9 w-auto object-contain drop-shadow-sm" src="https://lh3.googleusercontent.com/aida/AEtjO1Xm7jQDVbbV1xVz6C1Y27LLUXMDfW4LImeLkqsvHjnDKZZ82UvfOWAXIWcaTu3Z3cmCJdMXZlfyredyJx4EZQoY-HHJCM4VvkfREojxx6FSBhPjtUUssBjwnl1R4Mylm0my6OSR3LZjnZbomjRAoio4uhR1Wo3SgjJUCNtA-hqmHT7tNzjtsNWqSAqT4PFPCpDBrsQJRqP5ApggW3es6RWh29bSduLDNlNHPNj60Ml1v4jr0QFPx-2Zg_7J"/>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-[17px] font-bold text-primary tracking-tight leading-none">Honey Chain</span>
+<span class="font-code-sm text-[10px] tracking-wider uppercase font-semibold text-primary px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant">KVIC</span>
+</div>
+<span class="font-label-bilingual text-[11px] text-on-surface-variant leading-tight mt-0.5">Ministry of MSME • भारत सरकार</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button aria-label="Toggle Language" class="h-8 px-2.5 flex items-center justify-center font-label-bilingual text-[12px] bg-surface-container border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-high active:scale-95 transition-all" type="button">
+<span class="font-medium text-primary">EN / <span class="text-on-surface-variant font-normal">हिं</span></span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center ring-1 ring-outline-variant shadow-sm">
+<span class="material-symbols-outlined text-[17px]">person</span>
+</div>
+</div>
+</div>
+<!-- Lower Sync Status & Screen Title -->
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/40">
+<div class="inline-flex items-center gap-1.5 font-code-sm text-[11px] text-primary">
+<span class="relative flex h-2 w-2">
+<span class="status-radar absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+</span>
+<span class="font-medium tracking-tight">Ledger: 100% In Sync</span>
+</div>
+<div class="font-display text-[15px] font-semibold text-primary italic tracking-tight">Public Provenance Seal</div>
+</div>
+</div>
+</header>
+<!-- MAIN SCROLLABLE CONTENT -->
+<main class="flex-1 flex flex-col relative w-full pt-28 pb-28 px-3.5 max-w-lg mx-auto">
+<div class="flex flex-col w-full space-y-4">
+<!-- TOP LEDGER ANCHOR STRIP -->
+<section class="animate-fade-up w-full bg-surface-bright border border-outline-variant rounded-xl p-3 shadow-sm">
+<div class="flex items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-1.5">
+<span class="font-code-sm text-[12px] px-2 py-0.5 rounded bg-surface-container-high text-primary font-bold tracking-wide border border-outline-variant/70">
+              HC-2026-0001
+            </span>
+<button aria-label="Copy Batch Hash" class="h-7 px-2 flex items-center gap-1 rounded bg-surface-container text-on-surface-variant hover:text-primary hover:bg-surface-container-high border border-outline-variant/60 active:scale-95 transition-all text-left" id="copyBatchBtn" type="button">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span class="font-code-sm text-[11px]" id="copyBatchLabel">Copy</span>
+</button>
+</div>
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-code-sm font-semibold">
+<span class="material-symbols-outlined text-[13px] text-emerald-700" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span>Immutable</span>
+</div>
+</div>
+<p class="font-display italic text-[12.5px] text-on-surface-variant leading-snug">
+          Read directly from the decentralized sovereign ledger • ब्लॉकचेन प्रमाणिकता
+        </p>
+<div class="mt-2 pt-2 border-t border-outline-variant/60 flex items-center justify-between font-code-sm text-[10.5px] text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-secondary">token</span>
+            Block #14,892
+          </span>
+<span class="truncate">Sealed 21 Aug 2026 • 06:34 IST</span>
+</div>
+</section>
+<!-- EDITORIAL SCENARIO SWITCHER (PREVIEW TABS) -->
+<section class="animate-fade-up delay-1 w-full bg-surface-container border border-outline-variant/80 p-1 rounded-xl shadow-inner">
+<div class="grid grid-cols-3 gap-1" role="tablist">
+<button class="py-2 px-2 rounded-lg font-label-md text-[12px] font-semibold text-center transition-all bg-primary text-on-primary shadow-sm flex items-center justify-center gap-1" id="stateBtn-genuine" onclick="switchState('genuine')" type="button">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span>100 Genuine</span>
+</button>
+<button class="py-2 px-2 rounded-lg font-label-md text-[12px] text-center transition-all bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-bright flex items-center justify-center gap-1" id="stateBtn-fail" onclick="switchState('fail')" type="button">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>20 Lab Fail</span>
+</button>
+<button class="py-2 px-2 rounded-lg font-label-md text-[12px] text-center transition-all bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-bright flex items-center justify-center gap-1" id="stateBtn-forged" onclick="switchState('forged')" type="button">
+<span class="material-symbols-outlined text-[14px]">gpp_bad</span>
+<span>Invalid QR</span>
+</button>
+</div>
+</section>
+<!-- VERDICT HERO CARD -->
+<section class="animate-fade-up delay-1 w-full rounded-2xl bg-gradient-to-b from-primary via-[#043d2c] to-[#02281c] text-on-primary p-5 shadow-lg relative overflow-hidden border border-primary-container" id="verdictHeroBanner">
+<!-- Honeycomb watermark background overlay -->
+<div class="absolute -right-8 -top-8 opacity-10 pointer-events-none text-honey">
+<svg fill="currentColor" height="220" viewbox="0 0 100 100" width="220">
+<polygon points="50 3, 90 25, 90 75, 50 97, 10 75, 10 25"></polygon>
+</svg>
+</div>
+<div class="absolute -left-10 -bottom-10 opacity-5 pointer-events-none text-white">
+<svg fill="currentColor" height="180" viewbox="0 0 100 100" width="180">
+<polygon points="50 3, 90 25, 90 75, 50 97, 10 75, 10 25"></polygon>
+</svg>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<!-- Animated Circular Trust Meter with Honey Gleam -->
+<div class="relative w-32 h-32 my-1 flex items-center justify-center group cursor-default">
+<!-- Glow background circle -->
+<div class="absolute inset-1 rounded-full bg-honey/20 blur-md pulse-amber" id="scoreHalo"></div>
+<svg class="w-full h-full transform -rotate-90 drop-shadow-md" viewbox="0 0 120 120">
+<!-- Background Outer Track -->
+<circle cx="60" cy="60" fill="none" r="50" stroke="#0f3d2e" stroke-width="7"></circle>
+<!-- Animated Meter -->
+<circle cx="60" cy="60" fill="none" id="scoreRingProgress" r="50" stroke="#E9A23B" stroke-dashoffset="314.15" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<!-- Center Content -->
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display text-[40px] font-bold tracking-tight text-honey leading-none drop-shadow" id="scoreDisplayNum">0</span>
+<span class="font-code-sm text-[9px] uppercase tracking-wider text-primary-fixed mt-1" id="scoreSubLabel">Purity Index</span>
+</div>
+</div>
+<!-- KVIC Institutional Badge -->
+<div class="shimmer-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container/90 border border-honey/40 text-honey-light font-label-bilingual text-[11px] uppercase tracking-widest my-2 shadow-sm" id="verdictPill">
+<span class="material-symbols-outlined text-[14px] text-honey" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="font-semibold" id="verdictPillText">KVIC Honey Mission • Verified Genuine</span>
+</div>
+<!-- Titles -->
+<h1 class="font-headline-md text-[25px] font-semibold text-surface-bright tracking-tight leading-snug" id="verdictTitle">
+            Verified Genuine<br/>
+<span class="font-display italic text-[18px] font-normal text-primary-fixed-dim">असली शहद • पूर्णतः सत्यापित</span>
+</h1>
+<p class="font-body-sm text-[13px] text-surface-container-high/90 leading-relaxed px-2 mt-2" id="verdictRationale">
+            100% pure raw mustard honey tracked end-to-end from Sunita Devi's certified hives in Bharatpur to this jar with zero adulteration detected across all 5 NABL parameters.
+          </p>
+<!-- Quorum Signature Strip -->
+<div class="w-full mt-4 pt-2.5 pb-2 bg-black/25 backdrop-blur-sm border border-white/10 rounded-xl px-3 text-left" id="consensusBanner">
+<div class="flex items-center justify-between text-primary-fixed font-code-sm text-[10px]">
+<span class="flex items-center gap-1.5 font-semibold">
+<span class="w-2 h-2 rounded-full bg-honey animate-pulse" id="consensusDot"></span>
+<span id="consensusText">Consensus: 3/3 Autonomous Validators</span>
+</span>
+<span class="text-primary-fixed-dim bg-white/10 px-1.5 py-0.5 rounded">Ed25519 Signed</span>
+</div>
+<p class="font-code-sm text-[10px] text-surface-container-high/70 truncate mt-1" id="nodesText">
+              Nodes: KVIC-Nagpur (Validator-01) • KVIC-Jaipur • FSSAI-Delhi
+            </p>
+</div>
+</div>
+</section>
+<!-- PRODUCER & APIARY DOSSIER -->
+<section class="animate-fade-up delay-2 w-full rounded-2xl bg-surface-bright border border-outline-variant p-4 shadow-sm transition-all duration-300" id="originSection">
+<div class="flex items-start justify-between mb-3 border-b border-outline-variant/60 pb-2">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[19px]">nest_eco_area</span>
+<h2 class="font-headline-sm text-[18px] font-bold text-on-surface">Where It Came From</h2>
+</div>
+<span class="font-label-bilingual text-[11px] text-on-surface-variant">उत्पादक एवं मधुमक्खी शाला विवरण</span>
+</div>
+<span class="px-2.5 py-1 rounded-md bg-surface-container-high border border-outline-variant/80 font-code-sm text-[11px] text-secondary font-semibold">
+            Cluster RJ-04
+          </span>
+</div>
+<!-- Hero Photo Card with Warm Vignette -->
+<div class="w-full rounded-xl overflow-hidden bg-surface-container-low mb-3 shadow-sm border border-outline-variant/60 relative group">
+<div class="h-44 w-full relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" data-alt="Sunita Devi, a rural Indian female beekeeper wearing traditional attire and protective netting, standing gracefully beside wooden beehive boxes in a bright yellow flowering mustard field under morning golden hour sunlight in Rajasthan." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALLgS02dZXA9-fsDoObofFsH36ccyENO72coY4gKv6JJQOQYsCP3SQaAdCdz6JWr4geimwX_kbbVMWmy6PReTXfr2DGZoGHkCwayWxefYMcTC6rZ4YP1QLhcqYyTPf8pyvrx3muCg9HwMEVKiiz2Qvbvi6Nql0jLiAupgK5aGn28VkkX7qbZLMcUo8Z6pbkVD9ac17R8zX6n-gufsWluiQbbUu1iht9PRsimLPrvScrX5UqoUT6F07Kw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+<!-- Floating geo badge -->
+<div class="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-white flex items-center gap-1 border border-white/15">
+<span class="material-symbols-outlined text-[13px] text-honey">pin_drop</span>
+<span class="font-code-sm text-[10px]">Deeg, Bharatpur, RJ</span>
+</div>
+<div class="absolute bottom-2.5 left-3 right-3 flex items-end justify-between text-white">
+<div>
+<p class="font-display text-[19px] font-semibold tracking-tight text-white leading-tight drop-shadow-sm">Sunita Devi</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-honey"></span>
+<p class="font-code-sm text-[11px] text-amber-200">Reg ID: KVIC-BK-77492</p>
+</div>
+</div>
+<div class="bg-surface-bright/95 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-on-surface text-right border border-outline-variant shadow-sm">
+<span class="block font-code-sm text-[9px] uppercase tracking-wider text-on-surface-variant font-semibold">Direct Distance</span>
+<span class="font-code-sm text-[12px] font-bold text-secondary">142 km to Depot</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Asymmetrical Provenance Spec Sheet -->
+<div class="bg-surface-container-low rounded-xl p-3 border border-outline-variant/60 divide-y divide-outline-variant/60 font-body-sm text-[13px]">
+<div class="flex justify-between py-2 items-center">
+<span class="text-on-surface-variant font-medium">Apiary Location:</span>
+<span class="text-right font-semibold text-primary">Deeg, Bharatpur, Rajasthan</span>
+</div>
+<div class="flex justify-between py-2 items-center">
+<span class="text-on-surface-variant font-medium">GPS Coordinates:</span>
+<span class="font-code-sm text-[12px] bg-surface-container px-2 py-0.5 rounded text-on-surface font-medium border border-outline-variant/40">27.4728° N, 77.3271° E</span>
+</div>
+<div class="flex justify-between py-2 items-center">
+<span class="text-on-surface-variant font-medium">Primary Botanical Flora:</span>
+<span class="text-right font-medium text-on-surface">100% Mustard (<span class="font-semibold text-secondary">सरसों</span>)</span>
+</div>
+<div class="flex justify-between py-2 items-center">
+<span class="text-on-surface-variant font-medium">Certified Hive Identification:</span>
+<span class="font-code-sm text-[12px] text-primary font-semibold">#HV-003 &amp; #HV-004</span>
+</div>
+<div class="flex justify-between py-2 items-center">
+<span class="text-on-surface-variant font-medium">Harvest Batch Yield:</span>
+<span class="font-code-sm text-[12px] text-on-surface font-bold">62.0 kg total (31 kg/hive)</span>
+</div>
+</div>
+<div class="mt-3 p-2.5 bg-honey-light/60 border border-honey/40 rounded-xl flex items-start gap-2.5 text-secondary text-[12px] leading-snug">
+<span class="material-symbols-outlined text-[17px] text-secondary mt-0.5 shrink-0" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span>Biological yield density verified within normal natural margins. No artificial sugar feeding detected by hive sensors.</span>
+</div>
+</section>
+<!-- NABL LAB CERTIFICATION AUDIT REPORT (GOVERNMENTAL EDITORIAL SHEET) -->
+<section class="animate-fade-up delay-3 w-full rounded-2xl bg-surface-bright border border-outline-variant p-4 shadow-sm transition-all duration-300 relative overflow-hidden" id="nablSection">
+<!-- Watermark seal graphic in background -->
+<div class="absolute right-2 top-20 opacity-[0.04] pointer-events-none">
+<span class="material-symbols-outlined text-[160px]">verified</span>
+</div>
+<div class="flex items-start justify-between mb-3 border-b border-outline-variant/70 pb-2">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[21px]">biotech</span>
+<h2 class="font-headline-sm text-[18px] font-bold text-on-surface">NABL Lab Certificate</h2>
+</div>
+<span class="font-label-bilingual text-[11px] text-on-surface-variant">राष्ट्रीय परीक्षण एवं अंशशोधन प्रयोगशाला प्रमाण</span>
+</div>
+<div class="text-right" id="labResultBadge">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary-container text-on-primary font-code-sm text-[11px] font-bold tracking-wide shadow-sm">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span>CERTIFIED PASS</span>
+</span>
+</div>
+</div>
+<!-- Laboratory Meta Header -->
+<div class="bg-surface-container rounded-lg px-3 py-2 mb-3 border border-outline-variant/60 flex items-center justify-between font-code-sm text-[11px]">
+<div>
+<span class="text-on-surface-variant block text-[10px] uppercase">Accredited Laboratory</span>
+<span class="text-primary font-bold">KVIC Jaipur Central Hub</span>
+</div>
+<div class="text-right">
+<span class="text-on-surface-variant block text-[10px] uppercase">Audit Report No.</span>
+<span class="text-on-surface font-semibold">NABL/JPR/2026/8841-B</span>
+</div>
+</div>
+<!-- Structured Analytical Parameter Table -->
+<div class="w-full space-y-1.5 font-body-sm text-[13px]" id="labMetricsTable">
+<!-- Parameter 1: Moisture -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">Moisture (नमी)</span>
+<span class="font-code-sm text-[10.5px] text-on-surface-variant">FSSAI Norm: ≤ 20.0%</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-[13px] font-bold text-on-surface">17.8%</span>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-code-sm text-[11px] font-bold flex items-center gap-0.5 border border-emerald-300">
+<span class="material-symbols-outlined text-[13px]">check</span> Pass
+              </span>
+</div>
+</div>
+<!-- Parameter 2: HMF Freshness -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">HMF (Freshness Index)</span>
+<span class="font-code-sm text-[10.5px] text-on-surface-variant">Limit: ≤ 80.0 mg/kg</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-[13px] font-bold text-on-surface">14.2 mg</span>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-code-sm text-[11px] font-bold flex items-center gap-0.5 border border-emerald-300">
+<span class="material-symbols-outlined text-[13px]">check</span> Pass
+              </span>
+</div>
+</div>
+<!-- Parameter 3: Sucrose -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">Sucrose (सुक्रोज)</span>
+<span class="font-code-sm text-[10.5px] text-on-surface-variant">Permissible: ≤ 5.0%</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-[13px] font-bold text-on-surface">1.8%</span>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-code-sm text-[11px] font-bold flex items-center gap-0.5 border border-emerald-300">
+<span class="material-symbols-outlined text-[13px]">check</span> Pass
+              </span>
+</div>
+</div>
+<!-- Parameter 4: Reducing Sugars -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">Reducing Sugars</span>
+<span class="font-code-sm text-[10.5px] text-on-surface-variant">Standard Minimum: ≥ 65.0%</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-[13px] font-bold text-on-surface">74.2%</span>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-code-sm text-[11px] font-bold flex items-center gap-0.5 border border-emerald-300">
+<span class="material-symbols-outlined text-[13px]">check</span> Pass
+              </span>
+</div>
+</div>
+<!-- Parameter 5: C4 Sugar (Adulteration test) -->
+<div class="p-2.5 rounded-lg bg-honey-light/40 border border-honey/40 flex items-center justify-between" id="c4MetricCard">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface flex items-center gap-1">
+<span>C4 Plant Adulteration (SMR/EA-IRMS)</span>
+</span>
+<span class="font-code-sm text-[10.5px] text-on-surface-variant">Strict Limit: ≤ 7.0%</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-[13px] font-bold text-tertiary" id="c4ValText">&lt; 1.0% (Nil)</span>
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-code-sm text-[11px] font-bold flex items-center gap-0.5" id="c4Badge">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">verified</span> Pure
+              </span>
+</div>
+</div>
+</div>
+<!-- Laboratory Analyst Stamp Strip -->
+<div class="mt-3 pt-2.5 flex items-center justify-between bg-surface-container-high/70 border border-outline-variant/60 px-3 py-2 rounded-xl">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-honey/20 border border-honey text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">signature</span>
+</div>
+<div class="flex flex-col">
+<span class="font-display font-semibold text-[14px] text-on-surface leading-tight">Dr. R. K. Sharma</span>
+<span class="font-label-bilingual text-[10.5px] text-on-surface-variant">Senior Lead Spectroscopist • FSSAI Empanelled</span>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-flex items-center gap-1 font-code-sm text-[10px] text-primary font-bold bg-white px-2 py-1 rounded border border-outline-variant shadow-2xs">
+<span class="material-symbols-outlined text-[12px] text-emerald-700">lock</span> Signed
+            </span>
+</div>
+</div>
+</section>
+<!-- VERTICAL CUSTODY & JOURNEY TIMELINE -->
+<section class="animate-fade-up delay-3 w-full rounded-2xl bg-surface-bright border border-outline-variant p-4 shadow-sm transition-all duration-300" id="timelineSection">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant/60 pb-2">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[19px]">route</span>
+<h2 class="font-headline-sm text-[18px] font-bold text-on-surface">Custody Journey</h2>
+</div>
+<span class="font-label-bilingual text-[11px] text-on-surface-variant">मधुमक्खी के बक्से से आप तक का सफ़र</span>
+</div>
+<span class="font-code-sm text-[11px] text-on-surface-variant bg-surface-container px-2 py-1 rounded border border-outline-variant/50">
+            6 Milestones
+          </span>
+</div>
+<div class="relative pl-6 space-y-4">
+<!-- Continuous Vertical Timeline Connector -->
+<div class="absolute left-2.5 top-3 bottom-3 w-[2px] bg-gradient-to-b from-primary via-primary-container to-honey"></div>
+<!-- Step 1: IoT Sealed -->
+<div class="relative group">
+<div class="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-primary text-on-primary ring-4 ring-surface-bright flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[11px]">sensors</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/50 p-2.5 rounded-xl hover:border-primary/40 transition-colors">
+<div class="flex items-center justify-between font-code-sm text-[11px] text-on-surface-variant">
+<span>12 Aug 2026</span>
+<span class="text-tertiary font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">IoT Sealed</span>
+</div>
+<p class="font-body-sm text-[13px] font-bold text-on-surface mt-1">Automated Hive Sensor Log</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Brood temperature 34.6°C, humidity 55% within certified biological envelope.</p>
+</div>
+</div>
+<!-- Step 2: Harvest Batch -->
+<div class="relative group">
+<div class="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-primary text-on-primary ring-4 ring-surface-bright flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[11px]">agriculture</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/50 p-2.5 rounded-xl hover:border-primary/40 transition-colors">
+<div class="flex items-center justify-between font-code-sm text-[11px] text-on-surface-variant">
+<span>21 Aug 2026 • 06:30 AM</span>
+<span class="text-tertiary font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Harvest Batch</span>
+</div>
+<p class="font-body-sm text-[13px] font-bold text-on-surface mt-1">Harvested by Sunita Devi</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">62.0 kg collected from Hives HV-003 &amp; HV-004 with tamper seals applied.</p>
+</div>
+</div>
+<!-- Step 3: NABL Spectrometry -->
+<div class="relative group">
+<div class="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-primary text-on-primary ring-4 ring-surface-bright flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[11px]">science</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/50 p-2.5 rounded-xl hover:border-primary/40 transition-colors">
+<div class="flex items-center justify-between font-code-sm text-[11px] text-on-surface-variant">
+<span>22 Aug 2026 • 02:15 PM</span>
+<span class="text-secondary font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">NABL Passed</span>
+</div>
+<p class="font-body-sm text-[13px] font-bold text-on-surface mt-1">Laboratory Spectrometry Verified</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">KVIC Jaipur Central Analytical Facility verified 0% C4 adulteration.</p>
+</div>
+</div>
+<!-- Step 4: Processing -->
+<div class="relative group">
+<div class="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-primary text-on-primary ring-4 ring-surface-bright flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[11px]">factory</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/50 p-2.5 rounded-xl hover:border-primary/40 transition-colors">
+<div class="flex items-center justify-between font-code-sm text-[11px] text-on-surface-variant">
+<span>24 Aug 2026 • 11:00 AM</span>
+<span class="text-on-surface font-medium">Custody Transfer</span>
+</div>
+<p class="font-body-sm text-[13px] font-bold text-on-surface mt-1">Jaipur KVIC Processing Unit</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Multi-filtration at room temp. Tamper seal #TS-88401 confirmed intact.</p>
+</div>
+</div>
+<!-- Step 5: Packaging & Retail -->
+<div class="relative group">
+<div class="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-primary text-on-primary ring-4 ring-surface-bright flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[11px]">inventory_2</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/50 p-2.5 rounded-xl hover:border-primary/40 transition-colors">
+<div class="flex items-center justify-between font-code-sm text-[11px] text-on-surface-variant">
+<span>26 Aug 2026 • 04:30 PM</span>
+<span class="text-on-surface font-medium">Dispatched</span>
+</div>
+<p class="font-body-sm text-[13px] font-bold text-on-surface mt-1">Bottled: 124 Jars × 500g</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Dispatched to Khadi Gramodyog Bhawan, M.I. Road, Jaipur retail store.</p>
+</div>
+</div>
+<!-- Step 6: Consumer Scan (Active Pulsing Node) -->
+<div class="relative">
+<div class="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-honey text-primary ring-4 ring-honey/30 pulse-amber flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[12px] font-bold">qr_code_scanner</span>
+</div>
+<div class="bg-gradient-to-r from-honey-light/80 to-surface-bright border border-honey/60 p-2.5 rounded-xl shadow-xs">
+<div class="flex items-center justify-between font-code-sm text-[11px] text-secondary">
+<span class="font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-ping"></span>
+                  Just Now
+                </span>
+<span class="font-bold uppercase tracking-wider bg-honey/20 px-1.5 py-0.5 rounded text-secondary">Current Interaction</span>
+</div>
+<p class="font-body-sm text-[13px] font-bold text-on-surface mt-1">Verified by You</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Primary authentic handshake on serial security token #77492-01.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- CRYPTOGRAPHIC PROOF & ON-CHAIN ACCORDION -->
+<section class="animate-fade-up delay-4 w-full rounded-2xl bg-surface-bright border border-outline-variant p-3.5 shadow-sm">
+<button aria-expanded="false" class="w-full flex items-center justify-between text-left group cursor-pointer" id="techAccordionBtn" onclick="toggleTechDetails()" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</div>
+<div class="flex flex-col">
+<span class="font-display font-semibold text-[15px] text-on-surface group-hover:text-primary transition-colors">Cryptographic Proof &amp; On-Chain Ledger</span>
+<span class="font-label-bilingual text-[11px] text-on-surface-variant">ब्लॉकचेन हैश और स्मार्ट अनुबंध सत्यापन</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform duration-300 text-[20px]" id="techChevron">expand_more</span>
+</button>
+<!-- Collapsible Content -->
+<div class="hidden mt-3 pt-3 border-t border-outline-variant/60 space-y-2 font-code-sm text-[11px]" id="techDetailsDrawer">
+<!-- Merkle Root -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant uppercase text-[10px] font-bold tracking-wider">Merkle Root Hash</span>
+<button class="text-secondary hover:underline text-[10px] flex items-center gap-0.5" onclick="copyHash('0x3e12b84cf8021a8cd902194a2b6e159fa62817293b04c8a', this)" type="button">
+<span class="material-symbols-outlined text-[12px]">content_copy</span> Copy
+              </button>
+</div>
+<span class="text-primary font-mono text-[11px] break-all select-all font-semibold">0x3e12b84cf8021a8cd902194a2b6e159fa62817293b04c8a</span>
+</div>
+<!-- Transaction Receipt -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant uppercase text-[10px] font-bold tracking-wider">Block Header Receipt</span>
+<button class="text-secondary hover:underline text-[10px] flex items-center gap-0.5" onclick="copyHash('0x7f9a884beea04b1259c239401dd48eef92718104812f8', this)" type="button">
+<span class="material-symbols-outlined text-[12px]">content_copy</span> Copy
+              </button>
+</div>
+<span class="text-on-surface font-mono text-[11px] break-all select-all">0x7f9a884beea04b1259c239401dd48eef92718104812f8</span>
+</div>
+<!-- Smart Contract -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant uppercase text-[10px] font-bold tracking-wider">Smart Contract: KVIC Honey Registry v2.4</span>
+<span class="bg-primary/10 text-primary text-[9px] px-1.5 py-0.5 rounded font-bold">Verified Code</span>
+</div>
+<span class="text-on-surface font-mono text-[11px] break-all select-all">0xkvic9482701948ba920194820192837482910482</span>
+</div>
+<!-- Validator Signature -->
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex flex-col gap-1">
+<span class="text-on-surface-variant uppercase text-[10px] font-bold tracking-wider">Consensus Signature Digest (Ed25519)</span>
+<span class="text-on-surface font-mono text-[11px] break-all select-all">ed25519:78a1bc49ae801948ba92019482019283748291048288fa291e</span>
+</div>
+<div class="pt-1">
+<a class="w-full py-2 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant text-primary flex items-center justify-center gap-1.5 font-label-md text-[12px] font-semibold transition-all" href="#">
+<span class="material-symbols-outlined text-[15px]">open_in_new</span>
+<span>View On KVIC Public Ledger Explorer</span>
+</a>
+</div>
+</div>
+</section>
+<!-- PRIMARY ACTION BUTTONS -->
+<div class="w-full flex flex-col items-center gap-2 pt-2 pb-6">
+<button class="w-full py-3 px-4 rounded-xl bg-primary text-on-primary font-label-lg text-[14px] font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-md hover:bg-primary-container" id="shareProofBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Share Immutable Certificate</span>
+</button>
+<button class="py-2 px-3 text-secondary hover:text-on-surface-variant font-label-md text-[12px] font-medium flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">flag</span>
+<span>Report an issue / इस जार की शिकायत दर्ज करें</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BOTTOM FIXED NAVIGATION BAR -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-bright/95 backdrop-blur-xl border-t border-outline-variant shadow-[0_-2px_10px_rgba(27,26,23,0.05)]">
+<div class="flex items-center justify-around h-16 px-3 max-w-lg mx-auto">
+<a class="min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors" data-path="home-dashboard" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-label-md text-[11px]">Home</span>
+</a>
+<a class="min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors" data-path="hive-monitoring" href="#">
+<span class="material-symbols-outlined text-[20px]">hive</span>
+<span class="font-label-md text-[11px]">Hives</span>
+</a>
+<!-- Center Active Honey Hex Button -->
+<div class="relative -top-4 flex flex-col items-center">
+<a aria-current="page" class="w-13 h-13 p-3 rounded-full bg-honey text-primary flex items-center justify-center shadow-[0_4px_12px_rgba(233,162,59,0.4)] hover:bg-[#d8932f] active:scale-95 transition-all ring-4 ring-surface-bright" data-path="verify-honey" href="#">
+<span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
+</a>
+<span class="font-label-md text-[11px] mt-0.5 font-bold text-secondary tracking-tight">Verify</span>
+</div>
+<a class="min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors" data-path="harvest-log" href="#">
+<span class="material-symbols-outlined text-[20px]">edit_calendar</span>
+<span class="font-label-md text-[11px]">Harvest</span>
+</a>
+<a class="min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors" data-path="audit-ledger" href="#">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+<span class="font-label-md text-[11px]">Ledger</span>
+</a>
+</div>
+</nav>
+<!-- MICRO-INTERACTIONS & SCENARIO ENGINE -->
+<script>
+    // Animated Score Counter and SVG Dashoffset on Load
+    function animateScoreRing(targetScore, color, offset) {
+      const ring = document.getElementById('scoreRingProgress');
+      const numDisplay = document.getElementById('scoreDisplayNum');
+      
+      // Update stroke color and position
+      ring.setAttribute('stroke', color);
+      ring.style.strokeDashoffset = offset;
+
+      let current = 0;
+      const stepTime = Math.max(10, Math.floor(1200 / (targetScore || 1)));
+      numDisplay.innerText = "0";
+
+      if (targetScore === 0) {
+        numDisplay.innerText = "00";
+        return;
+      }
+
+      const timer = setInterval(() => {
+        current += 1;
+        numDisplay.innerText = current;
+        if (current >= targetScore) {
+          numDisplay.innerText = targetScore;
+          clearInterval(timer);
+        }
+      }, stepTime);
+    }
+
+    // Initialize animation on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        animateScoreRing(100, '#E9A23B', '0');
+      }, 250);
+    });
+
+    // Toggle Cryptographic Drawer
+    function toggleTechDetails() {
+      const drawer = document.getElementById('techDetailsDrawer');
+      const chevron = document.getElementById('techChevron');
+      const btn = document.getElementById('techAccordionBtn');
+      const isHidden = drawer.classList.contains('hidden');
+      
+      if (isHidden) {
+        drawer.classList.remove('hidden');
+        chevron.style.transform = 'rotate(180deg)';
+        btn.setAttribute('aria-expanded', 'true');
+      } else {
+        drawer.classList.add('hidden');
+        chevron.style.transform = 'rotate(0deg)';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    // Copy Hash helper
+    function copyHash(text, el) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+      }
+      const originalText = el.innerHTML;
+      el.innerHTML = '<span class="material-symbols-outlined text-[12px]">check</span> Copied!';
+      setTimeout(() => {
+        el.innerHTML = originalText;
+      }, 1500);
+    }
+
+    // Quick Copy Batch ID Interaction
+    const copyBtn = document.getElementById('copyBatchBtn');
+    const copyLabel = document.getElementById('copyBatchLabel');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        if (navigator.clipboard) navigator.clipboard.writeText('HC-2026-0001');
+        copyLabel.innerText = 'Copied!';
+        setTimeout(() => {
+          copyLabel.innerText = 'Copy';
+        }, 1800);
+      });
+    }
+
+    // Share Proof Simulated Action
+    const shareBtn = document.getElementById('shareProofBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => {
+        if (navigator.share) {
+          navigator.share({
+            title: 'KVIC Honey Chain - Verified Genuine',
+            text: 'Verified 100% Genuine Raw Mustard Honey (Batch HC-2026-0001) from Sunita Devi, Bharatpur.',
+            url: window.location.href
+          }).catch(() => {});
+        } else {
+          alert('Public Certificate link copied to clipboard!');
+        }
+      });
+    }
+
+    // Interactive Scenario Switcher (Genuine / Lab Fail / Invalid QR)
+    function switchState(state) {
+      const btnGenuine = document.getElementById('stateBtn-genuine');
+      const btnFail = document.getElementById('stateBtn-fail');
+      const btnForged = document.getElementById('stateBtn-forged');
+
+      const hero = document.getElementById('verdictHeroBanner');
+      const title = document.getElementById('verdictTitle');
+      const rationale = document.getElementById('verdictRationale');
+      const pill = document.getElementById('verdictPill');
+      const pillText = document.getElementById('verdictPillText');
+      const scoreSubLabel = document.getElementById('scoreSubLabel');
+      const scoreHalo = document.getElementById('scoreHalo');
+
+      const originSec = document.getElementById('originSection');
+      const nablSec = document.getElementById('nablSection');
+      const timeSec = document.getElementById('timelineSection');
+      const labBadge = document.getElementById('labResultBadge');
+
+      const c4Card = document.getElementById('c4MetricCard');
+      const c4Val = document.getElementById('c4ValText');
+      const c4Badge = document.getElementById('c4Badge');
+
+      const consensusDot = document.getElementById('consensusDot');
+      const consensusText = document.getElementById('consensusText');
+      const nodesText = document.getElementById('nodesText');
+
+      // Reset tabs styling
+      [btnGenuine, btnFail, btnForged].forEach(b => {
+        b.className = 'py-2 px-2 rounded-lg font-label-md text-[12px] text-center transition-all bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-bright flex items-center justify-center gap-1';
+      });
+
+      if (state === 'genuine') {
+        btnGenuine.className = 'py-2 px-2 rounded-lg font-label-md text-[12px] font-semibold text-center transition-all bg-primary text-on-primary shadow-sm flex items-center justify-center gap-1';
+        
+        hero.className = 'w-full rounded-2xl bg-gradient-to-b from-primary via-[#043d2c] to-[#02281c] text-on-primary p-5 shadow-lg relative overflow-hidden border border-primary-container';
+        
+        scoreSubLabel.innerText = "Purity Index";
+        scoreHalo.className = 'absolute inset-1 rounded-full bg-honey/20 blur-md pulse-amber';
+        animateScoreRing(100, '#E9A23B', '0');
+
+        pill.className = 'shimmer-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container/90 border border-honey/40 text-honey-light font-label-bilingual text-[11px] uppercase tracking-widest my-2 shadow-sm';
+        pillText.innerText = 'KVIC Honey Mission • Verified Genuine';
+
+        title.innerHTML = 'Verified Genuine<br/><span class="font-display italic text-[18px] font-normal text-primary-fixed-dim">असली शहद • पूर्णतः सत्यापित</span>';
+        rationale.innerText = "100% pure raw mustard honey tracked end-to-end from Sunita Devi's certified hives in Bharatpur to this jar with zero adulteration detected across all 5 NABL parameters.";
+
+        consensusDot.className = 'w-2 h-2 rounded-full bg-honey animate-pulse';
+        consensusText.innerText = 'Consensus: 3/3 Autonomous Validators';
+        nodesText.innerText = 'Nodes: KVIC-Nagpur (Validator-01) • KVIC-Jaipur • FSSAI-Delhi';
+
+        // Lab Section Reset
+        labBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary-container text-on-primary font-code-sm text-[11px] font-bold tracking-wide shadow-sm"><span class="material-symbols-outlined text-[13px]" style="font-variation-settings: \'FILL\' 1;">verified</span><span>CERTIFIED PASS</span></span>';
+        c4Card.className = 'p-2.5 rounded-lg bg-honey-light/40 border border-honey/40 flex items-center justify-between';
+        c4Val.className = 'font-code-sm text-[13px] font-bold text-tertiary';
+        c4Val.innerText = '< 1.0% (Nil)';
+        c4Badge.className = 'px-2 py-0.5 rounded bg-primary-container text-on-primary font-code-sm text-[11px] font-bold flex items-center gap-0.5';
+        c4Badge.innerHTML = '<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: \'FILL\' 1;">verified</span> Pure';
+
+        // Sections visibility
+        originSec.style.opacity = '1';
+        originSec.style.pointerEvents = 'auto';
+        nablSec.style.opacity = '1';
+        timeSec.style.opacity = '1';
+
+      } else if (state === 'fail') {
+        btnFail.className = 'py-2 px-2 rounded-lg font-label-md text-[12px] font-semibold text-center transition-all bg-error text-on-error shadow-sm flex items-center justify-center gap-1';
+        
+        hero.className = 'w-full rounded-2xl bg-gradient-to-b from-[#5c0f0f] to-[#3a0505] text-on-error p-5 shadow-lg relative overflow-hidden border border-red-800';
+        
+        scoreSubLabel.innerText = "Quality Failed";
+        scoreHalo.className = 'absolute inset-1 rounded-full bg-red-500/20 blur-md';
+        animateScoreRing(20, '#FFDAD6', '250');
+
+        pill.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 border border-red-400 text-red-200 font-label-bilingual text-[11px] uppercase tracking-widest my-2 shadow-sm';
+        pillText.innerText = 'NABL Lab Alert • Batch Quarantined';
+
+        title.innerHTML = 'Lab Check Failed<br/><span class="font-display italic text-[18px] font-normal text-red-200">गुणवत्ता परीक्षण में विफल</span>';
+        rationale.innerText = "Batch failed NABL laboratory spectrometry in Jaipur. Excessive C4 synthetic corn/cane syrup detected (18.4% vs ≤7.0% threshold). Do not purchase or consume.";
+
+        consensusDot.className = 'w-2 h-2 rounded-full bg-red-400 animate-pulse';
+        consensusText.innerText = 'Consensus: Quarantined by Lab Node';
+        nodesText.innerText = 'Node: KVIC-Jaipur Quality Engine flagged adulteration alert';
+
+        // Update Lab view
+        labBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-error text-on-error font-code-sm text-[11px] font-bold tracking-wide shadow-sm"><span class="material-symbols-outlined text-[13px]">dangerous</span><span>FAILED LAB AUDIT</span></span>';
+        c4Card.className = 'p-2.5 rounded-lg bg-red-50 border border-red-300 flex items-center justify-between';
+        c4Val.className = 'font-code-sm text-[13px] font-bold text-error';
+        c4Val.innerText = '18.4% (Adulterated)';
+        c4Badge.className = 'px-2 py-0.5 rounded bg-error text-on-error font-code-sm text-[11px] font-bold flex items-center gap-0.5';
+        c4Badge.innerHTML = '<span class="material-symbols-outlined text-[13px]">close</span> High C4 Sugar';
+
+        originSec.style.opacity = '0.5';
+        nablSec.style.opacity = '1';
+        timeSec.style.opacity = '0.7';
+
+      } else if (state === 'forged') {
+        btnForged.className = 'py-2 px-2 rounded-lg font-label-md text-[12px] font-semibold text-center transition-all bg-[#2D2A26] text-white shadow-sm flex items-center justify-center gap-1';
+        
+        hero.className = 'w-full rounded-2xl bg-gradient-to-b from-[#2d2a26] to-[#1a1816] text-white p-5 shadow-lg relative overflow-hidden border border-stone-700';
+        
+        scoreSubLabel.innerText = "Unregistered";
+        scoreHalo.className = 'hidden';
+        animateScoreRing(0, '#717973', '314');
+
+        pill.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-800 border border-stone-500 text-stone-300 font-label-bilingual text-[11px] uppercase tracking-widest my-2 shadow-sm';
+        pillText.innerText = 'Forged / Invalid QR Security Code';
+
+        title.innerHTML = 'Unregistered QR Code<br/><span class="font-display italic text-[18px] font-normal text-stone-300">अवैध या अप्रमाणित बारकोड</span>';
+        rationale.innerText = "This QR identity hash does not exist on the KVIC Sovereign Proof Ledger. This jar may be counterfeit or packaging duplicated. Do not consume.";
+
+        consensusDot.className = 'w-2 h-2 rounded-full bg-stone-500';
+        consensusText.innerText = 'Zero Ledger Anchors Found';
+        nodesText.innerText = 'Cryptographic lookup returned null receipt across all 3 nodes';
+
+        originSec.style.opacity = '0.3';
+        nablSec.style.opacity = '0.3';
+        timeSec.style.opacity = '0.3';
+      }
+    }
+  </script>
+</body></html>

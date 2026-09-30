@@ -230,3 +230,74 @@
 .rc-tex { opacity: .62; }
 .rc-tex { background-blend-mode: normal; }
 .paper::before { opacity: .55; }
+
+
+/* ===== Showpiece pass: entrance, depth-of-field, head glow on paper, glint, rubber stamp ===== */
+/* the room behind goes soft while the printer is up */
+.rc-scrim { backdrop-filter: blur(0); animation: rcFade .25s ease both, rcBlur .5s ease forwards; }
+@keyframes rcBlur { to { backdrop-filter: blur(7px) saturate(.8); } }
+/* printer drops in and bounces on its feet */
+.rc-wrap { animation: rcDrop .62s cubic-bezier(.18, 1.25, .4, 1) both; }
+@keyframes rcDrop { 0% { transform: translateY(-46px) scale(.96); opacity: 0; } 60% { opacity: 1; } 100% { transform: none; } }
+.printer::after { /* soft contact shadow under the housing */ content: ''; position: absolute; left: 8%; right: 8%; bottom: -14px; height: 16px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent); z-index: -1; }
+/* warm light from the thermal head spills onto the paper right under the slot */
+.feed::before { content: ''; position: absolute; z-index: 5; left: 0; right: 0; top: 0; height: 46px; pointer-events: none; opacity: 0;
+  background: radial-gradient(60% 100% at 50% 0, rgba(255, 150, 60, .38), rgba(255, 150, 60, .1) 45%, transparent 75%); mix-blend-mode: multiply; }
+.feed.printing::before { animation: headSpill .17s steps(2, end) infinite; }
+@keyframes headSpill { 0% { opacity: .9; } 50% { opacity: .45; } 100% { opacity: .8; } }
+/* one pass of light across the strip as it comes to rest */
+.rc-glint { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .75) 47%, rgba(255, 255, 255, .15) 53%, transparent 62%) 0 0 / 300% 100% no-repeat; }
+.paper.settle .rc-glint { animation: glint 1.15s .1s ease-in-out both; }
+@keyframes glint { 0% { opacity: 1; background-position: 110% 0; } 100% { opacity: 1; background-position: -10% 0; } }
+/* rubber ink stamp: slams down, squashes, leaves uneven ink */
+.rc-stamp { position: absolute; z-index: 3; top: 150px; right: 10px; display: grid; justify-items: center; gap: 1px; padding: 5px 12px 6px; pointer-events: none;
+  --ink: 31, 94, 70; color: rgba(var(--ink), .86); border: 3px double rgba(var(--ink), .82); border-radius: 6px; rotate: -13deg;
+  font-family: 'Courier Prime', ui-monospace, monospace; mix-blend-mode: multiply; text-shadow: 0 0 .6px rgba(var(--ink), .9);
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='80'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -3.2 0 0 0 2.35'/></filter><rect width='180' height='80' filter='url(%23g)'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='80'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -3.2 0 0 0 2.35'/></filter><rect width='180' height='80' filter='url(%23g)'/></svg>");
+  animation: stampIn .42s cubic-bezier(.3, 0, .2, 1) both; }
+.rc-stamp.bad { --ink: 169, 40, 34; }
+.rc-stamp b { font-size: 21px; letter-spacing: .2em; font-weight: 800; line-height: 1.05; }
+.rc-stamp span { font-size: 8.5px; letter-spacing: .16em; font-weight: 700; }
+@keyframes stampIn {
+  0% { transform: scale(2.6); opacity: 0; filter: blur(3px); }
+  55% { transform: scale(.9); opacity: 1; filter: blur(0); }
+  72% { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+/* the strip jolts under the impact */
+.feed.thud { animation: thud .38s .22s cubic-bezier(.3, 0, .3, 1) both; }
+@keyframes thud { 0% { transform: none; } 25% { transform: translateY(3px) scaleY(.994); } 55% { transform: translateY(-1px); } 100% { transform: none; } }
+[data-motion="off"] .rc-wrap, [data-motion="off"] .rc-stamp, [data-motion="off"] .feed.thud, [data-motion="off"] .paper.settle .rc-glint, [data-motion="off"] .feed.printing::before { animation: none !important; }
+[data-motion="off"] .rc-scrim { backdrop-filter: blur(7px) saturate(.8); }
+@media print { .rc-stamp { mix-blend-mode: normal; } .rc-glint, .feed::before { display: none; } }
+
+
+/* ===== Realistic tear: gap runs across from the pull, strip is yanked free, stub stays in the slot ===== */
+.feed.ripping { overflow: visible; max-height: none; }
+.paper.rip::after, .paper.yank::after { display: none; } /* rebuilt inside the mask */
+/* pull: pivot on the still-attached right end of the tear line; the gap opens left -> right, faster as fibres give */
+.paper.rip { transform-origin: calc(100% - 3px) 13px; animation: rip .54s cubic-bezier(.55, 0, .9, .55) forwards; }
+@keyframes rip {
+  0% { transform: none; }
+  35% { transform: translateY(1px) rotate(-.9deg) scaleY(1.003); }
+  100% { transform: translateY(3px) rotate(-4.4deg) scaleY(1.008); }
+}
+/* snap: a tiny recoil as tension releases, then the hand pulls it down and away, curling slightly */
+.paper.yank { transform-origin: calc(100% - 3px) 13px; animation: yank .8s cubic-bezier(.5, 0, .75, .35) forwards; filter: url(#paper-wave) drop-shadow(0 16px 22px rgba(0, 0, 0, .55)); }
+@keyframes yank {
+  0% { transform: translateY(3px) rotate(-4.4deg); }
+  10% { transform: translate(-3px, -2px) rotate(-3.2deg); }
+  28% { transform: translate(-16px, 26px) rotate(-6.5deg) rotateX(6deg); }
+  100% { transform: translate(-190px, 820px) rotate(-19deg) rotateX(24deg); }
+}
+/* the stub left in the printer: same torn edge, stays put, swings once when the strip lets go */
+.stub2 { position: absolute; z-index: 2; top: -14px; left: 0; right: 0; height: 34px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .35), rgba(0, 0, 0, .08) 60%, transparent), #f8f6ef; transform-origin: 50% 0; }
+.stub2.free { animation: stubSwing .9s cubic-bezier(.3, .6, .4, 1) both; }
+@keyframes stubSwing { 0% { transform: none; } 12% { transform: translateY(-2px) rotate(1.4deg); } 30% { transform: rotate(-1deg); } 50% { transform: rotate(.55deg); } 70% { transform: rotate(-.25deg); } 100% { transform: none; } }
+/* close: the room comes back into focus */
+.rc-scrim.out { backdrop-filter: blur(7px) saturate(.8); animation: rcOut .42s .92s ease forwards; }
+@keyframes rcOut { to { opacity: 0; backdrop-filter: blur(0); } }
+[data-motion="off"] .paper.rip, [data-motion="off"] .paper.yank, [data-motion="off"] .stub2, [data-motion="off"] .rc-scrim.out { animation: none !important; }

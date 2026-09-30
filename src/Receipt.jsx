@@ -1,21 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import { buildReceipt, receiptText, printerSound, tearSound, soundOn, setSound } from './lib/receipt.js'
+import { buildReceipt, receiptText, printerSound, tearSound, stampSound, soundOn, setSound } from './lib/receipt.js'
 import { verifyUrl, Icon } from './lib/ui.jsx'
 import { motionOn } from './lib/motion.jsx'
 
 const PRINT_MS = 3700
 
-// A real tear is never regular: random teeth, and the stub's edge is the exact complement of the strip's.
+// Paper torn against the serrated bar: small teeth that loosely follow the bar's 10px pitch, a gentle slant,
+// and fibre whiskers (turbulence-displaced edge + a feathered fringe). Returned as masks so the edge can be soft.
+// The strip and the stub share one tear line, so their edges are complementary.
+const TEAR_H = 40 // px of the strip's top covered by the tear mask
+const STUB_OFF = 14 // the stub starts 14px above the strip (under the slot)
 function makeTear() {
+  const W = 300, slope = (Math.random() - 0.5) * 5, seed = Math.floor(Math.random() * 999)
   const pts = []
-  let x = 0
-  while (x < 100) { pts.push([x, 1 + Math.random() * 10]); x += 1.2 + Math.random() * 5 }
-  pts.push([100, 1 + Math.random() * 10])
-  const f = ([px, py], dy = 0) => `${px.toFixed(1)}% ${(py + dy).toFixed(1)}px`
+  for (let x = -6; x <= W + 6; x += 1.4 + Math.random() * 2.4) {
+    const tooth = Math.abs(((x / 10) % 1) - 0.5) * 3.2 // triangle wave, the bar's pitch
+    pts.push([x, 12 + slope * (x / W - 0.5) + tooth + (Math.random() - 0.5) * 2.2])
+  }
+  const line = (dy) => pts.map(([x, y]) => `L${x.toFixed(1)} ${(y + dy).toFixed(1)}`).join(' ')
+  const fibres = (d) => `<filter id='f' x='-5%' y='-60%' width='110%' height='220%'><feTurbulence type='fractalNoise' baseFrequency='.85 .5' numOctaves='2' seed='${seed}'/><feDisplacementMap in='SourceGraphic' scale='3' xChannelSelector='R' yChannelSelector='G'/></filter>
+    <filter id='w' x='-5%' y='-60%' width='110%' height='220%'><feTurbulence type='fractalNoise' baseFrequency='1.6 .9' numOctaves='1' seed='${seed + 1}'/><feDisplacementMap in='SourceGraphic' scale='5'/></filter>
+    <path d='${d}' fill='#000' filter='url(#f)'/><path d='${d}' fill='#000' fill-opacity='.4' filter='url(#w)'/>`
+  const svg = (h, body) => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${W} ${h}' width='${W}' height='${h}' preserveAspectRatio='none'>${body}</svg>`)}")`
+  const stripSvg = svg(TEAR_H, fibres(`M-6 ${TEAR_H + 10} L-6 ${pts[0][1]} ${line(0)} L${W + 6} ${TEAR_H + 10} Z`))
+  const stubSvg = svg(34, fibres(`M-6 -10 L${W + 6} -10 ${[...pts].reverse().map(([x, y]) => `L${x.toFixed(1)} ${(y + STUB_OFF - 1.5).toFixed(1)}`).join(' ')} Z`))
   return {
-    strip: `polygon(${pts.map((p) => f(p)).join(', ')}, 100% calc(100% + 10px), 0 calc(100% + 10px))`,
-    stub: `polygon(0 0, 100% 0, ${[...pts].reverse().map((p) => f(p, 14)).join(', ')})`,
+    // top: torn edge · middle: solid · bottom: the previous tear's teeth (the ::after zigzag can't survive a mask)
+    strip: { WebkitMask: `${stripSvg} 0 0 / 100% ${TEAR_H}px no-repeat, linear-gradient(#000, #000) 0 ${TEAR_H}px / 100% calc(100% - ${TEAR_H + 8}px) no-repeat, conic-gradient(from -45deg at 50% 100%, transparent 90deg, #000 0) 0 100% / 12px 8px repeat-x` },
+    stub: { WebkitMask: `${stubSvg} 0 0 / 100% 100% no-repeat` },
   }
 }
 
@@ -49,6 +62,7 @@ export default function Receipt() {
   const [sound, setSoundState] = useState(soundOn())
   const closeRef = useRef(null)
   const [tear, setTear] = useState(null)
+  const [stamped, setStamped] = useState(false)
 
   useEffect(() => {
     const on = (e) => { setBlock(e.detail); setPhase(motionOn() ? 'printing' : 'done') }
@@ -65,17 +79,21 @@ export default function Receipt() {
     if (motionOn()) printerSound(PRINT_MS - 300)
     const id = setTimeout(() => setPhase('settle'), motionOn() ? PRINT_MS : 0)
     const id2 = motionOn() ? setTimeout(() => setPhase('done'), PRINT_MS + 1300) : 0
-    return () => { clearTimeout(id); clearTimeout(id2); window.__lenis?.start() }
+    // the stamp lands as the swinging strip comes to rest
+    setStamped(!motionOn())
+    const id3 = motionOn() ? setTimeout(() => { setStamped(true); stampSound() }, PRINT_MS + 700) : 0
+    return () => { clearTimeout(id); clearTimeout(id2); clearTimeout(id3); window.__lenis?.start() }
   }, [r])
 
   useEffect(() => { if (phase === 'done') closeRef.current?.focus() }, [phase])
 
   const close = () => {
     if (!motionOn()) return setBlock(null)
-    // 1) pull: paper pivots and the crack runs across the width  2) it comes free: irregular edge, stub stays  3) strip flutters away
-    setTear(makeTear()); setPhase('pull'); setTimeout(tearSound, 140)
-    setTimeout(() => setPhase('torn'), 560)
-    setTimeout(() => setBlock(null), 2500)
+    // 1) pull: the strip pivots on its still-attached right corner, so the gap opens left -> right along the tear line
+    // 2) snap: the last fibres give, the strip is yanked away; the stub stays in the slot and wobbles
+    setTear(makeTear()); setPhase('pull'); setTimeout(tearSound, 40)
+    setTimeout(() => setPhase('torn'), 540)
+    setTimeout(() => setBlock(null), 1500)
   }
   useEffect(() => {
     if (!block) return
@@ -86,12 +104,13 @@ export default function Receipt() {
   if (!r) return null
   const printing = phase === 'printing'
   const ready = phase === 'settle' || phase === 'done'
+  const tearing = phase === 'pull' || phase === 'torn'
   const copy = () => navigator.clipboard?.writeText(receiptText(r))
   const wa = () => window.open('https://wa.me/?text=' + encodeURIComponent(receiptText(r)), '_blank', 'noopener')
   const toggleSound = () => { setSound(!sound); setSoundState(!sound) }
 
   return (
-    <div className={'rc-scrim' + (phase === 'pull' || phase === 'torn' ? ' tearing' : '')} onClick={(e) => e.target === e.currentTarget && close()}>
+    <div className={'rc-scrim' + (phase === 'pull' || phase === 'torn' ? ' tearing' : '') + (phase === 'torn' ? ' out' : '')} onClick={(e) => e.target === e.currentTarget && close()}>
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true"><filter id="paper-wave" x="-2%" y="-1%" width="104%" height="102%"><feTurbulence type="fractalNoise" baseFrequency="0.006 0.018" numOctaves="2" seed="7" result="w" /><feDisplacementMap in="SourceGraphic" in2="w" scale="3.2" xChannelSelector="R" yChannelSelector="G" /></filter></svg>
       <div className="rc-wrap" role="dialog" aria-modal="true" aria-label={`Receipt ${r.no}`}>
         <div className={'printer' + (printing ? ' on' : '')}>
@@ -102,11 +121,17 @@ export default function Receipt() {
           <div className="slot" />
         </div>
 
-        <div className={'feed' + (ready ? ' done' : '') + (phase === 'torn' || phase === 'pull' ? ' ' + phase : '')}>
-          {phase === 'torn' && tear && <div className="stub" aria-hidden="true" style={{ clipPath: tear.stub }} />}
-          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'settle' ? ' settle' : '') + (phase === 'pull' ? ' pull' : '') + (phase === 'torn' ? ' torn' : '')} style={phase === 'torn' && tear ? { clipPath: tear.strip } : undefined} aria-live="polite">
-            {phase === 'pull' && <span className="crack" aria-hidden="true" />}
+        <div className={'feed' + (printing ? ' printing' : '') + (ready ? ' done' : '') + (stamped && ready ? ' thud' : '') + (tearing ? ' ripping' : '')}>
+          {tearing && tear && <div className={'stub2' + (phase === 'torn' ? ' free' : '')} aria-hidden="true" style={tear.stub} />}
+          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'settle' ? ' settle' : '') + (phase === 'pull' ? ' rip' : '') + (phase === 'torn' ? ' yank' : '')} style={tearing && tear ? tear.strip : undefined} aria-live="polite">
             <span className="rc-tex" aria-hidden="true" />
+            <span className="rc-glint" aria-hidden="true" />
+            {stamped && (
+              <div className={'rc-stamp ' + r.result.tone} aria-hidden="true">
+                <b>{r.result.tone === 'bad' ? 'REJECTED' : /PASS/.test(r.result.text) ? 'PASSED' : 'SEALED'}</b>
+                <span>ON CHAIN · BLOCK #{r.index}</span>
+              </div>
+            )}
             <header className="rc-head">
               <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,2 44,14 44,34 24,46 4,34 4,14" fill="none" stroke="#1b1a17" strokeWidth="2.5" /><circle cx="24" cy="24" r="5" fill="#1b1a17" /></svg>
               <b>HONEY CHAIN</b>

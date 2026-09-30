@@ -110,18 +110,33 @@ export function printerSound(ms = 3700) {
   } catch { /* audio unavailable */ }
 }
 
+// Rubber stamp: a low body thump plus a short papery slap.
+export function stampSound() {
+  if (!soundOn()) return
+  try {
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)()
+    if (ctx.state === 'suspended') ctx.resume()
+    const t0 = ctx.currentTime
+    const osc = ctx.createOscillator(); osc.type = 'sine'
+    osc.frequency.setValueAtTime(140, t0); osc.frequency.exponentialRampToValueAtTime(48, t0 + 0.16)
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.5, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.22)
+    osc.connect(g); g.connect(ctx.destination); osc.start(t0); osc.stop(t0 + 0.25)
+    noise(45, 0.3, 750, 0.8)
+  } catch { /* audio unavailable */ }
+}
+
 // Paper rip: a short, gritty noise burst whose pitch falls as the paper tears away.
 export function tearSound() {
   if (!soundOn()) return
   try {
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)()
     if (ctx.state === 'suspended') ctx.resume()
-    const dur = 0.34
+    const dur = 0.5 // spans the whole pull: fibres give one by one as the gap runs across
     const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate)
     const d = buf.getChannelData(0)
     for (let i = 0; i < d.length; i++) {
       const env = Math.sin((i / d.length) * Math.PI) // swell and fade
-      const crackle = Math.random() < 0.18 ? 1 : 0.35   // uneven fibres snapping
+      const crackle = Math.random() < 0.1 + 0.2 * (i / d.length) ? 1 : 0.3 // uneven fibres snapping, faster near the end
       d[i] = (Math.random() * 2 - 1) * env * crackle
     }
     const src = ctx.createBufferSource(); src.buffer = buf
