@@ -6,6 +6,19 @@ import { motionOn } from './lib/motion.jsx'
 
 const PRINT_MS = 2600
 
+// A real tear is never regular: random teeth, and the stub's edge is the exact complement of the strip's.
+function makeTear() {
+  const pts = []
+  let x = 0
+  while (x < 100) { pts.push([x, 1 + Math.random() * 10]); x += 1.2 + Math.random() * 5 }
+  pts.push([100, 1 + Math.random() * 10])
+  const f = ([px, py], dy = 0) => `${px.toFixed(1)}% ${(py + dy).toFixed(1)}px`
+  return {
+    strip: `polygon(${pts.map((p) => f(p)).join(', ')}, 100% calc(100% + 10px), 0 calc(100% + 10px))`,
+    stub: `polygon(0 0, 100% 0, ${[...pts].reverse().map((p) => f(p, 14)).join(', ')})`,
+  }
+}
+
 // Decorative Code-39 style barcode derived from the block hash.
 function Barcode({ hash }) {
   const bars = useMemo(() => {
@@ -35,6 +48,7 @@ export default function Receipt() {
   const [qr, setQr] = useState('')
   const [sound, setSoundState] = useState(soundOn())
   const closeRef = useRef(null)
+  const [tear, setTear] = useState(null)
 
   useEffect(() => {
     const on = (e) => { setBlock(e.detail); setPhase(motionOn() ? 'printing' : 'done') }
@@ -57,10 +71,10 @@ export default function Receipt() {
 
   const close = () => {
     if (!motionOn()) return setBlock(null)
-    // 1) pull: paper stretches against the tear bar  2) rip: jagged edge, sound, stub stays  3) the strip flutters away
-    setPhase('pull'); setTimeout(tearSound, 130)
-    setTimeout(() => setPhase('torn'), 340)
-    setTimeout(() => setBlock(null), 1900)
+    // 1) pull: paper pivots and the crack runs across the width  2) it comes free: irregular edge, stub stays  3) strip flutters away
+    setTear(makeTear()); setPhase('pull'); setTimeout(tearSound, 140)
+    setTimeout(() => setPhase('torn'), 560)
+    setTimeout(() => setBlock(null), 2500)
   }
   useEffect(() => {
     if (!block) return
@@ -86,8 +100,9 @@ export default function Receipt() {
         </div>
 
         <div className={'feed' + (phase === 'done' ? ' done' : '') + (phase === 'torn' || phase === 'pull' ? ' ' + phase : '')}>
-          {phase === 'torn' && <div className="stub" aria-hidden="true" />}
-          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'pull' ? ' pull' : '') + (phase === 'torn' ? ' torn' : '')} aria-live="polite">
+          {phase === 'torn' && tear && <div className="stub" aria-hidden="true" style={{ clipPath: tear.stub }} />}
+          <article className={'paper' + (printing ? ' printing' : '') + (phase === 'pull' ? ' pull' : '') + (phase === 'torn' ? ' torn' : '')} style={phase === 'torn' && tear ? { clipPath: tear.strip } : undefined} aria-live="polite">
+            {phase === 'pull' && <span className="crack" aria-hidden="true" />}
             <header className="rc-head">
               <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,2 44,14 44,34 24,46 4,34 4,14" fill="none" stroke="#1b1a17" strokeWidth="2.5" /><circle cx="24" cy="24" r="5" fill="#1b1a17" /></svg>
               <b>HONEY CHAIN</b>

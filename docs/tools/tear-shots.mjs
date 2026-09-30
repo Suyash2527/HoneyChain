@@ -15,11 +15,11 @@ await wait(3400) // printing finished
 console.log('done printing; paper class =', await page.evaluate(() => document.querySelector('.paper').className))
 await page.evaluate(() => [...document.querySelectorAll('.rc-actions button')].pop().click())
 const t0 = Date.now()
-for (const ms of [150, 330, 520, 760, 1050, 1400]) {
+for (const ms of [200, 380, 560, 700, 950, 1300, 1700]) {
   await wait(Math.max(0, ms - (Date.now() - t0)))
   const info = await page.evaluate(() => { const p = document.querySelector('.paper'); return p ? `${p.className.replace('paper', '').trim() || 'intact'} top=${Math.round(p.getBoundingClientRect().top)} stub=${!!document.querySelector('.stub')}` : 'gone' })
   await page.screenshot({ path: path.join(out, `tear-${ms}.png`) }); console.log(String(ms).padStart(5), 'ms', info)
 }
-await wait(900)
+await wait(1600)
 console.log('closed:', await page.evaluate(() => !document.querySelector('.rc-scrim')), '| errors:', errors.length ? errors : 'none')
 await browser.close()
