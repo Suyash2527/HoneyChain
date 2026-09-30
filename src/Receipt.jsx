@@ -92,6 +92,7 @@ export default function Receipt() {
 
   return (
     <div className={'rc-scrim' + (phase === 'pull' || phase === 'torn' ? ' tearing' : '')} onClick={(e) => e.target === e.currentTarget && close()}>
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true"><filter id="paper-wave" x="-2%" y="-1%" width="104%" height="102%"><feTurbulence type="fractalNoise" baseFrequency="0.006 0.018" numOctaves="2" seed="7" result="w" /><feDisplacementMap in="SourceGraphic" in2="w" scale="3.2" xChannelSelector="R" yChannelSelector="G" /></filter></svg>
       <div className="rc-wrap" role="dialog" aria-modal="true" aria-label={`Receipt ${r.no}`}>
         <div className={'printer' + (printing ? ' on' : '')}>
           <div className="printer-top">
@@ -105,6 +106,7 @@ export default function Receipt() {
           {phase === 'torn' && tear && <div className="stub" aria-hidden="true" style={{ clipPath: tear.stub }} />}
           <article className={'paper' + (printing ? ' printing' : '') + (phase === 'settle' ? ' settle' : '') + (phase === 'pull' ? ' pull' : '') + (phase === 'torn' ? ' torn' : '')} style={phase === 'torn' && tear ? { clipPath: tear.strip } : undefined} aria-live="polite">
             {phase === 'pull' && <span className="crack" aria-hidden="true" />}
+            <span className="rc-tex" aria-hidden="true" />
             <header className="rc-head">
               <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><polygon points="24,2 44,14 44,34 24,46 4,34 4,14" fill="none" stroke="#1b1a17" strokeWidth="2.5" /><circle cx="24" cy="24" r="5" fill="#1b1a17" /></svg>
               <b>HONEY CHAIN</b>
