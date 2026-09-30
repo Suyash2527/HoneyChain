@@ -73,6 +73,11 @@ The build is a static site (`dist/`) with relative asset paths, so it runs on a 
 
 Set `SITE_URL=https://your-domain` at build time so social-preview images use absolute URLs. The app is an installable, offline-first PWA (`public/manifest.webmanifest`, `public/sw.js`).
 
+## Data used
+
+- **Real public data:** CSE (2020) test findings, PIB / NBHM production and outlay figures, and FSSAI / BIS / Codex honey parameters - used for the problem evidence, lab limits and impact statistics (see the SIH deck references).
+- **Prototype dataset (synthetic):** 15 hives, 10 batches and ~51 ledger blocks across 8 real districts in 6 states, using real flowering regions (Bharatpur mustard, Muzaffarpur litchi, Sundarbans mangrove, ...). Beekeeper names, hive IDs, lab reports and sensor streams are **synthetic** - no real individuals - and are replaced by real pilot data in Phase 0. One seeded batch (`HC-2026-0007`) deliberately passes C4/HMF but fails NMR + SMR to demonstrate the CSE finding.
+
 ## Project structure
 
 ```
