@@ -157,6 +157,17 @@ for par in box.text_frame.paragraphs:
     v = par.add_run(); v.text = value; v.font.bold = True; v.font.color.rgb = NAVY; v.font.name = par.runs[0].font.name
     par.space_after = Pt(5); par.line_spacing = 1.0; par.alignment = PP_ALIGN.LEFT
     par.runs[0].font.size = Pt(17); v.font.size = Pt(14 if key == 'Problem Statement Title' else 17)
+# extra lines in the same style: where judges can try the prototype and watch the demo (clickable in the PDF)
+import copy
+from pptx.text.text import _Paragraph
+VIDEO = os.environ.get('VIDEO_URL', 'https://youtu.be/-nWbjNHHzBw')
+last = [p for p in box.text_frame.paragraphs if p.runs][-1]
+for label, value, url in [('Live Prototype- ', 'honey-chain-rust.vercel.app', 'https://honey-chain-rust.vercel.app/'),
+                          ('Demo Video- ', VIDEO.replace('https://', ''), VIDEO)]:
+    el = copy.deepcopy(last._p); last._p.addnext(el)
+    par = _Paragraph(el, last._parent)
+    par.runs[0].text = label; par.runs[1].text = value; par.runs[1].hyperlink.address = url
+    last = par
 
 # =====================================================================
 # 2. IDEA TITLE - Proposed solution
@@ -386,10 +397,22 @@ tb(s, 0.35, 5.88, 7.5, 1.02, [
     bl('Prototype lab limits are indicative (FSSAI / BIS / Codex style); final limits come from the notified lab', 8.6, 1),
 ], fill=LIGHT, margin=0.08)
 rect(s, 8.05, 5.62, 4.9, 1.3, fill=None, line=LINE)
-tb(s, 8.1, 5.64, 4.8, 0.24, [{'text': 'TRY THE PROTOTYPE', 'size': 10, 'bold': True, 'color': NAVY, 'align': PP_ALIGN.CENTER}])
-pic(s, 'qr-live.png', 8.3, 5.88, w=0.78, border=False, folder=ASSETS); pic(s, 'qr-source.png', 9.92, 5.88, w=0.78, border=False, folder=ASSETS); pic(s, 'qr-verify.png', 11.54, 5.88, w=0.78, border=False, folder=ASSETS)
-for i, (t, u) in enumerate([('Live app', 'honey-chain-rust.vercel.app'), ('Source code', 'github.com/Suyash2527/HoneyChain'), ('Verify a sample batch', 'live app, batch HC-2026-0008')]):
-    tb(s, 8.08 + i * 1.62, 6.62, 1.62, 0.32, [{'text': t, 'size': 8.5, 'bold': True, 'align': PP_ALIGN.CENTER, 'after': 0}, {'text': u, 'size': 6.5, 'color': BLUE, 'align': PP_ALIGN.CENTER}], margin=0.0)
+tb(s, 8.1, 5.64, 4.8, 0.24, [{'text': 'TRY THE PROTOTYPE  ·  WATCH THE DEMO', 'size': 10, 'bold': True, 'color': NAVY, 'align': PP_ALIGN.CENTER}])
+VIDEO = os.environ.get('VIDEO_URL', 'https://youtu.be/-nWbjNHHzBw')
+links = [  # (qr image, title, caption, url) - every QR and caption is also a clickable link in the PDF
+    ('qr-video.png', 'Demo video (3 min)', VIDEO.replace('https://', ''), VIDEO),
+    ('qr-live.png', 'Live app', 'honey-chain-rust.vercel.app', 'https://honey-chain-rust.vercel.app/'),
+    ('qr-source.png', 'Source code', 'Suyash2527/HoneyChain', 'https://github.com/Suyash2527/HoneyChain'),
+    ('qr-verify.png', 'Verify a sample', 'batch HC-2026-0008', 'https://honey-chain-rust.vercel.app/#/verify/HC-2026-0008'),
+]
+col, qw = 1.21, 0.72
+for i, (img, t, cap, url) in enumerate(links):
+    x0 = 8.08 + i * col
+    p = pic(s, img, x0 + (col - qw) / 2, 5.9, w=qw, border=False, folder=ASSETS); p.click_action.hyperlink.address = url
+    box = tb(s, x0, 6.62, col, 0.32, [{'text': t, 'size': 8, 'bold': True, 'color': RED if i == 0 else INK, 'align': PP_ALIGN.CENTER, 'after': 0},
+                                      {'text': cap, 'size': 6, 'color': BLUE, 'align': PP_ALIGN.CENTER}], margin=0.0)
+    for par in box.text_frame.paragraphs:
+        for r in par.runs: r.hyperlink.address = url
 
 # drop the "Important instructions" slide
 sldIdLst = prs.slides._sldIdLst
