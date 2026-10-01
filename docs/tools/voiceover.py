@@ -1,6 +1,9 @@
 # Dev tool: add an AI voice-over (Indian English, Microsoft neural TTS via edge-tts) to the demo video.
 # Usage: python docs/tools/voiceover.py [preset] [in.mp4] [out.mp4]
 #   preset: girl (young female, most natural - default) | B (younger female, peppier) | plain | boy (young male)
+#           sarvam:<speaker>   Sarvam AI Bulbul v3 voice, e.g. sarvam:priya  (needs SARVAM_API_KEY)
+#   python docs/tools/voiceover.py samples   -> one short clip per candidate Sarvam female voice, to pick by ear
+# SARVAM_API_KEY is read from the environment or from a .env file in the project root (.env is gitignored).
 #
 # What makes it sound less synthetic:
 #   1. every sentence is synthesised on its own and separated by a short, slightly varied breath pause,
@@ -9,7 +12,7 @@
 #   3. the voice gets a little warmth, the digital high-end sizzle is softened, and a tiny room reverb
 #      is added so it sounds recorded in a room, not generated inside the computer
 # Each scene's sentences start at that scene's time, so the voice stays in sync with the video.
-import asyncio, os, random, re, subprocess, sys, tempfile
+import asyncio, base64, json, os, random, re, subprocess, sys, tempfile, urllib.error, urllib.request
 import edge_tts
 
 PRESETS = {
@@ -20,6 +23,39 @@ PRESETS = {
 }
 PRESETS['A'] = PRESETS['girl']  # old name
 preset = sys.argv[1] if len(sys.argv) > 1 else 'girl'
+if preset.startswith('sarvam:'):
+    PRESETS[preset] = dict(provider='sarvam', voice=preset.split(':', 1)[1], rate='', pitch='')
+# Sarvam's docs don't publish genders, so these are the names to audition for a young female voice.
+# (bulbul:v3 speakers only; anushka/manisha/vidya/arya are v2-only). Measured: suhani and ishita sound youngest.
+SARVAM_CANDIDATES = ['suhani', 'ishita', 'kavya', 'shruti', 'ritu', 'pooja', 'tanya', 'simran', 'shreya', 'priya',
+                     'roopa', 'kavitha', 'rupali']
+
+
+def sarvam_key():
+    key = os.environ.get('SARVAM_API_KEY')
+    if not key and os.path.exists('.env'):
+        raw = open('.env', 'rb').read()  # PowerShell may save UTF-16 with a BOM
+        text = raw.decode('utf-16') if raw[:2] in (b'\xff\xfe', b'\xfe\xff') else raw.decode('utf-8-sig')
+        for line in text.splitlines():
+            if line.strip().startswith('SARVAM_API_KEY='):
+                key = line.split('=', 1)[1].strip().strip('"\'')
+    if not key:
+        sys.exit('SARVAM_API_KEY not set. Add a line  SARVAM_API_KEY=your_key  to a .env file in the project root.')
+    return key
+
+
+def sarvam_tts(text, speaker, path):
+    body = json.dumps({'text': text, 'language_code': 'en-IN', 'model': 'bulbul:v3', 'speaker': speaker,
+                       'pace': 1.0, 'temperature': 0.7, 'speech_sample_rate': 48000, 'output_audio_codec': 'wav'}).encode()
+    req = urllib.request.Request('https://api.sarvam.ai/text-to-speech', data=body, method='POST',
+                                 headers={'api-subscription-key': sarvam_key(), 'Content-Type': 'application/json'})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            audio = json.load(r)['audios'][0]
+    except urllib.error.HTTPError as e:
+        sys.exit(f'Sarvam API error {e.code}: {e.read().decode(errors="replace")[:400]}')
+    with open(path, 'wb') as f:
+        f.write(base64.b64decode(audio))
 src = sys.argv[2] if len(sys.argv) > 2 else 'docs/demo/HoneyChain-demo-3min.mp4'
 out = sys.argv[3] if len(sys.argv) > 3 else 'docs/demo/HoneyChain-demo-voiceover.mp4'
 FFMPEG = os.path.join('node_modules', 'ffmpeg-static', 'ffmpeg.exe' if os.name == 'nt' else 'ffmpeg')
@@ -74,8 +110,11 @@ def sentences(text):
 
 
 async def synth(text, path, p):
-    raw = path + '.mp3'
-    await edge_tts.Communicate(text, p['voice'], rate=p['rate'], pitch=p['pitch']).save(raw)
+    raw = path + '.src'
+    if p.get('provider') == 'sarvam':
+        await asyncio.to_thread(sarvam_tts, text, p['voice'], raw)
+    else:
+        await edge_tts.Communicate(text, p['voice'], rate=p['rate'], pitch=p['pitch']).save(raw)
     # trim the engine's own leading/trailing silence so we control the pauses exactly
     subprocess.run([FFMPEG, '-y', '-i', raw, '-af', SILENCE, '-ar', '48000', path], capture_output=True)
     return duration(path)
@@ -118,4 +157,12 @@ async def main():
         print(r.stderr[-1500:]); sys.exit(1)
     print(f'saved {out} ({os.path.getsize(out) / 1e6:.1f} MB, {len(clips)} sentences, voice {p["voice"]} {p["rate"]} {p["pitch"]})')
 
-asyncio.run(main())
+async def samples():
+    os.makedirs('docs/demo/voice-samples', exist_ok=True)
+    line = "Okay, say you're a buyer. You just scan the QR code on the jar, and this one's genuine! Trust score, one hundred."
+    for s in SARVAM_CANDIDATES:
+        f = f'docs/demo/voice-samples/sarvam-{s}.wav'
+        await synth(line, f, dict(provider='sarvam', voice=s))
+        print('saved', f)
+
+asyncio.run(samples() if preset == 'samples' else main())
