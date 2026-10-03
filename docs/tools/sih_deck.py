@@ -13,7 +13,7 @@ from lxml import etree
 
 TEMPLATE, SHOTS, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets')  # committed QR images
-TEAM = os.environ.get('TEAM_NAME', 'CodeVerse')
+TEAM = os.environ.get('TEAM_NAME', 'CodeVerse9')  # exactly as registered on the SIH portal
 TEAM_ID = os.environ.get('TEAM_ID', '133847')
 
 NAVY, BLUE = RGBColor(0x1F, 0x49, 0x7D), RGBColor(0x00, 0x70, 0xC0)
